@@ -1,3 +1,10 @@
+// jQuery
+/*document.addEventListener('DOMContentLoaded', function() {
+  var elems = document.querySelectorAll('.sidenav');
+  var instances = M.Sidenav.init(elems, {edge:'left'});
+});*/
+
+// am4core
 am4core.ready(function() {
 
 
