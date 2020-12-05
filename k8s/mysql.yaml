@@ -49,6 +49,114 @@ data:
     INSERT INTO missions (mission, description, heading) VALUES ('sts-28', 'Dolore aliquip proident et cupidatat nisi mollit excepteur nostrud culpa amet mollit reprehenderit Lorem consectetur. Labore magna aliquip ut reprehenderit do enim Lorem duis. Anim sunt incididunt laboris magna pariatur ex consequat quis veniam excepteur.\nNostrud proident id fugiat duis. Commodo tempor do dolore et ullamco cupidatat sint enim ea cillum cillum anim ut. Proident tempor consectetur non irure laborum adipisicing cupidatat dolore consequat. Et occaecat do aliqua aliquip proident deserunt mollit.\nElit amet id ad sunt quis. Proident do laboris cupidatat ea anim esse incididunt reprehenderit qui do exercitation dolore ad sit. Eu tempor ullamco qui enim laboris. Nisi occaecat ex officia ad ullamco. Ea consequat non pariatur quis qui. Tempor anim eiusmod anim exercitation est exercitation in dolor officia.\nAute amet incididunt nostrud adipisicing anim ipsum laborum est amet ad dolor aute laboris ipsum. Veniam sint nisi ullamco eiusmod in incididunt. Dolore consequat ut laboris mollit nisi pariatur deserunt culpa occaecat et fugiat. Ipsum laborum nisi nisi amet sunt sit sunt.\nNisi veniam ad consectetur aliquip officia ea exercitation pariatur nisi enim esse. Quis sit dolor labore id sunt. Do eiusmod in fugiat sunt nostrud. Esse tempor ad aliquip ut voluptate aute amet dolor. Consectetur elit mollit qui officia labore. Consectetur cupidatat cupidatat sunt nisi commodo.', 'Non ea occaecat voluptate labore.');
     INSERT INTO missions (mission, description, heading) VALUES ('sts-29', 'Culpa laboris occaecat adipisicing dolore enim fugiat ut laboris aliqua officia sit. Labore officia velit ullamco veniam commodo deserunt cillum ex ex ex magna ex. Lorem amet culpa commodo consequat ut. Culpa veniam amet quis eiusmod. Irure deserunt ut deserunt velit. Ullamco eu reprehenderit irure est voluptate.\nIpsum sit eu aliquip consequat reprehenderit mollit. Elit qui aute ullamco sit irure aliquip proident. Veniam excepteur incididunt do sunt aute laboris exercitation sunt elit minim veniam ut. Est cupidatat reprehenderit dolore tempor. Dolore sit occaecat proident exercitation duis laboris laboris magna ullamco dolor excepteur commodo. Exercitation pariatur aliquip adipisicing laboris commodo id ullamco ea magna ipsum.\nVelit laboris ut laborum anim aliqua cillum labore elit anim fugiat in fugiat elit eu. Dolor ea enim consectetur aliqua aliquip velit aliquip mollit elit do ut minim enim. Elit qui Lorem eu excepteur qui laborum dolor. Laborum aute fugiat consequat ipsum pariatur occaecat eiusmod excepteur magna est mollit culpa est magna.\nConsectetur incididunt deserunt velit anim dolore ut voluptate occaecat. Occaecat id sunt consectetur reprehenderit id consectetur do. Qui veniam et ea Lorem Lorem esse veniam quis tempor qui magna cupidatat. Cillum adipisicing dolor culpa id fugiat. Proident culpa amet laboris in nisi.\nElit commodo esse ad occaecat anim quis. Veniam laboris veniam ut non nisi non consequat dolore ullamco aliqua. Esse est aute ullamco non aute reprehenderit officia velit eu.', 'Do Lorem aliquip eiusmod voluptate pariatur consequat excepteur proident.');
 
+    CREATE TABLE `sentence` (
+      `id` SMALLINT unsigned  NOT NULL,
+      `person` VARCHAR(50) NOT NULL,
+      `n_serie`  tinyint NOT NULL,
+      `n_season`  tinyint NOT NULL,
+      `sentence`  VARCHAR(5000),
+      `sentiment`  VARCHAR(10),
+      PRIMARY KEY (`id`)
+    );
+
+    CREATE VIEW allSeasons AS SELECT DISTINCT n_season FROM sentence;
+    CREATE VIEW allPeople AS SELECT DISTINCT person FROM sentence;
+    Create VIEW staticPersonData AS SELECT person, count(sentence) AS CountSentence, 
+      count(DISTINCT(n_season)) AS CountSeasons
+      FROM sentence
+      GROUP BY person;
+
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (1,'waymar royce',1,1,'What d’you expect? They’re savages One lot steals a goat from another lot and before you know it, they’re ripping each other to pieces');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (2,'will',1,1,'I’ve never seen wildlings do a thing like this I’ve never seen a thing like this, not ever in my life');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (3,'waymar royce',1,1,'How close did you get?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (4,'will',1,1,'Close as any man would');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (5,'gared',1,1,'We should head back to the wall');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (6,'royce',1,1,'Do the dead frighten you?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (7,'gared',1,1,'Our orders were to track the wildlings We tracked them They won’t trouble us no more');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (8,'royce',1,1,'You don’t think he’ll ask us how they died? Get back on your horse');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (9,'will',1,1,'Whatever did it to them could do it to us They even killed the children');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (10,'royce',1,1,'It’s a good thing we’re not children You want to run away south, run away Of course, they will behead you as a deserter If I don’t catch you first Get back on your horse I won’t say it again');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (11,'royce',1,1,'Your dead men seem to have moved camp');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (12,'will',1,1,'They were here');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (13,'gared',1,1,'See where they went');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (14,'royce',1,1,'What is it?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (15,'gared',1,1,'It’s');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (16,'jon',1,1,'Go on Father’s watching');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (17,'jon',1,1,'And your mother');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (18,'septa mordane',1,1,'Fine work, as always Well done');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (19,'sansa',1,1,'Thank you');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (20,'septa mordane',1,1,'I love the detail that you’ve managed to get in this corners Quite beautiful the stitching');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (21,'ned',1,1,'And which one of you was a marksman at ten? Keep practicing, Bran Go on');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (22,'jon',1,1,'Don’t think too much, Bran');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (23,'robb',1,1,'Relax your bow arm JON');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (24,'robb',1,1,'Quick, Bran, faster');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (25,'cassel',1,1,'Lord Stark My lady A guardsman just rode in from the hills They’ve captured a deserter from the Night’s Watch');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (26,'ned',1,1,'Get the lads to saddle their horses');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (27,'catelyn',1,1,'Do you have to?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (28,'ned',1,1,'He swore an oath, Cat');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (29,'cassel',1,1,'The law is law, my lady');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (30,'ned',1,1,'Tell Bran he’s coming, too');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (31,'catelyn',1,1,'Ned Ten is too young to see such things');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (32,'ned',1,1,'He won’t be a boy forever And winter is coming');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (33,'robb',1,1,'Lad, go run back and get the rest');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (34,'will',1,1,'White Walkers I saw the White Walkers White Walkers The White Walkers, I saw them');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (35,'will',1,1,'I know I broke my oath And I know I’m a deserter I should have gone back to the Wall and warned them But I saw what I saw I saw the White Walkers People need to know If you can get word to my family, tell them I’m no coward Tell them I’m sorry');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (36,'will',1,1,'Forgive me, lord');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (37,'ned',1,1,'In the name of Robert of the House Baratheon, first of his name');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (38,'jon',1,1,'Don’t look away');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (39,'ned',1,1,'King of the Andals and the First Men');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (40,'jon',1,1,'Father will know if you do');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (41,'ned',1,1,'Lord of the Seven Kingdoms and protector of the realm, I, Eddard of the House Stark, Lord of Winterfell and Warden of the North, sentence you to die');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (42,'jon',1,1,'You did well');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (43,'ned',1,1,'You understand why I did it?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (44,'bran',1,1,'Jon said he was a deserter');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (45,'ned',1,1,'But do you understand why I had to kill him?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (46,'bran',1,1,'Our way is the old way?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (47,'ned',1,1,'The man who passes the sentence should swing the sword');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (48,'bran',1,1,'Is it true he saw the White Walkers?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (49,'ned',1,1,'The White Walkers have been gone for thousands of years');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (50,'bran',1,1,'So he was lying?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (51,'ned',1,1,'A madman sees what he sees');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (52,'jon',1,1,'What is it?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (53,'theon',1,1,'Mountain lion?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (54,'ned',1,1,'There are no mountain lions in these woods');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (55,'theon',1,1,'It’s a freak');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (56,'ned',1,1,'It’s a direwolf');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (57,'ned',1,1,'Tough old beast');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (58,'robb',1,1,'There are no direwolves south of the Wall');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (59,'jon',1,1,'Now there are five');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (60,'jon',1,1,'You want to hold it?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (61,'bran',1,1,'Where will they go? Their mother’s dead');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (62,'cassel',1,1,'They don’t belong down here');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (63,'ned',1,1,'Better a quick death They won’t last without their mother');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (64,'theon',1,1,'Right Give it here');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (65,'bran',1,1,'NO');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (66,'robb',1,1,'Put away your blade');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (67,'theon',1,1,'I take orders from your father, not you');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (68,'bran',1,1,'Please, father');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (69,'ned',1,1,'I’m sorry, Bran');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (70,'jon',1,1,'Lord Stark? There are five pups One for each of the Stark children The direwolf is the sigil of your House They were meant to have them');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (71,'ned',1,1,'You will train them yourselves You will feed them yourselves And if they die, you will bury them yourselves');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (72,'bran',1,1,'What about you?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (73,'jon',1,1,'I’m not a Stark Get on');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (74,'robb',1,1,'What is it?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (75,'theon',1,1,'The runt of the litter That one’s yours, Snow');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (76,'jaime',1,1,'As your brother, I feel it’s my duty to warn you You worry too much It’s starting to show');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (77,'cersei',1,1,'And you never worry about anything When we were seven, you jumped off the cliffs as Casterly Rock One hundred foot drop into the water And you were never afraid');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (78,'jaime',1,1,'There was nothing to be afraid of until you told father We’re Lannisters Lannisters don’t act like fools');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (79,'cersei',1,1,'What if Jon Arryn told someone?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (80,'jaime',1,1,'But who would he tell?');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (81,'cersei',1,1,'My husband');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (82,'jaime',1,1,'If he told the king, both our heads would be skewered on the city gates by now Whatever Jon Arryn knew or didn’t know, it died with him And Robert will choose a new Hand of the king, someone to do his job while he’s off fucking boars and hunting whores Or is it the other way around? And life will go on');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (83,'cersei',1,1,'You should be the Hand of the king');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (84,'jaime',1,1,'That’s an honor I can do without Their days are too long, their lives are too short');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (85,'catelyn',1,1,'All these years and I still feel like an outsider when I come here');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (86,'ned',1,1,'You have five northern children You’re not an outsider');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (87,'catelyn',1,1,'I wonder if the old gods agree');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (88,'ned',1,1,'It’s your gods with all the rules');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (89,'catelyn',1,1,'I am so sorry, my love');
+    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (90,'ned',1,1,'Tell me');
+    
 ---
 apiVersion: apps/v1
 kind: Deployment
