@@ -12,6 +12,9 @@ build:
     - image: farberg/popular-slides-spark
       context: spark-app
 
+    - image: dashboard
+      context: dashboard
+
 deploy:
   kubectl:
     manifests:

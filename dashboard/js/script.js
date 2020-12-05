@@ -1,9 +1,3 @@
-// jQuery
-/*document.addEventListener('DOMContentLoaded', function() {
-  var elems = document.querySelectorAll('.sidenav');
-  var instances = M.Sidenav.init(elems, {edge:'left'});
-});*/
-
 // am4core
 am4core.ready(function() {
 
@@ -14,7 +8,7 @@ am4core.ready(function() {
   // Themes end
   
 //######################################################################
-
+/*
   // heatmap
   var chart = am4core.create("heatmap", am4charts.XYChart);
   chart.maskBullets = false;
@@ -292,9 +286,8 @@ chart2.legend.itemContainers.each((container)=>{
 
 //Hybrid drill-down Pie/Bar chart
 
-/**
-* Source data
-*/
+// Source data
+
 var data = [{
 "category": "john",
 "value": 10000,
@@ -348,9 +341,8 @@ var data = [{
 }]
 }]
 
-/**
-* Chart container
-*/
+// Chart container
+
 
 // Create chart instance
 var chart3 = am4core.create("hybridpiebar", am4core.Container);
@@ -359,9 +351,8 @@ chart3.height = am4core.percent(100);
 chart3.layout = "horizontal";
 
 
-/**
-* Column chart
-*/
+// Column chart
+
 
 // Create chart instance
 var columnChart = chart3.createChild(am4charts.XYChart);
@@ -380,9 +371,8 @@ columnSeries.dataFields.valueX = "value";
 columnSeries.dataFields.categoryY = "category";
 columnSeries.columns.template.strokeWidth = 0;
 
-/**
-* Pie chart
-*/
+// Pie chart
+
 
 // Create chart instance
 var pieChart = chart3.createChild(am4charts.PieChart);
@@ -439,6 +429,6 @@ if (ev.target.isActive) {
   label2.text = ev.target.dataItem.category;
 }
 });
-
-
+*/
+createChart();
   }); // end am4core.ready()

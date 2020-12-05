@@ -1,0 +1,57 @@
+#Begin: Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  labels:
+    app: dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard
+  template:
+    metadata:
+      labels:
+        app: dashboard
+    spec:
+      containers:
+        - name: dashboard
+          image: dashboard
+          ports:
+            - containerPort: 3000
+
+---
+#Begin: Service
+kind: Service
+apiVersion: v1
+metadata:
+  name: dashboard-service
+spec:
+  selector:
+    app: dashboard
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+#End: Service
+
+---
+#Begin: Ingress
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: dashboard-ingress
+#   annotations:
+#     nginx.ingress.kubernetes.io/rewrite-target: /
+# spec:
+#   rules:
+#     - http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: dashboard-service
+#                 port:
+#                   number: 3001
