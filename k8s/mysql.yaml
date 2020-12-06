@@ -59,12 +59,28 @@ data:
       PRIMARY KEY (`id`)
     );
 
+    CREATE TABLE `sentence_person_sentiment_season` (
+      `person` VARCHAR(50) NOT NULL,
+      `n_season`  tinyint NOT NULL,
+      `sentiment_group`  VARCHAR(10) NOT NULL,
+      `count` BIGINT,
+       PRIMARY KEY (`person`, `n_season`, `sentiment_group`)
+    );
+
+    DELIMITER //
+      CREATE PROCEDURE add_count(
+        IN per VARCHAR(50), 
+        IN season tinyint, 
+        IN sen_gp VARCHAR(10),
+        IN co BIGINT)
+      BEGIN
+        INSERT INTO sentence_person_sentiment_season (person, n_season, sentiment_group, count)
+        VALUES (per, season, sen_gp, co) ON DUPLICATE KEY UPDATE count=co;
+      END //
+    DELIMITER ;
+
     CREATE VIEW allSeasons AS SELECT DISTINCT n_season FROM sentence;
     CREATE VIEW allPeople AS SELECT DISTINCT person FROM sentence;
-    Create VIEW staticPersonData AS SELECT person, count(sentence) AS CountSentence, 
-      count(DISTINCT(n_season)) AS CountSeasons
-      FROM sentence
-      GROUP BY person;
 
     INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (1,'waymar royce',1,1,'What d’you expect? They’re savages One lot steals a goat from another lot and before you know it, they’re ripping each other to pieces');
     INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (2,'will',1,1,'I’ve never seen wildlings do a thing like this I’ve never seen a thing like this, not ever in my life');
