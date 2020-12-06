@@ -59,6 +59,14 @@ data:
       PRIMARY KEY (`id`)
     );
 
+    CREATE TABLE `sentence_person_sentiment_season` (
+      `person` VARCHAR(50) NOT NULL,
+      `n_season`  tinyint NOT NULL,
+      `sentiment_group`  VARCHAR(10),
+      `count` BIGINT,
+       PRIMARY KEY (`person`, `n_season`, `sentiment_group`)
+    );
+    
     CREATE VIEW allSeasons AS SELECT DISTINCT n_season FROM sentence;
     CREATE VIEW allPeople AS SELECT DISTINCT person FROM sentence;
     Create VIEW staticPersonData AS SELECT person, count(sentence) AS CountSentence, 
