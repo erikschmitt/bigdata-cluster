@@ -5,13 +5,11 @@ const { Kafka } = require('kafkajs')
 const mysqlx = require('@mysql/xdevapi');
 const MemcachePlus = require('memcache-plus');
 const express = require('express')
-const Entities = require('html-entities').AllHtmlEntities;
 
 const app = express()
-const entities = new Entities();
+
 const cacheTimeSecs = 15
 const numberOfMissions = 30
-//app.use(express.static(__dirname + '/css'));
 app.use(express.static('css'));
 app.use(express.static('js'));
 
@@ -53,7 +51,11 @@ const dbConfig = {
 	password: options.mysqlPassword,
 	schema: options.mysqlSchema
 };
-
+/**
+ * Ausführung eines SQL-Query mittels mysql/xdevapi
+ * @param {string} query 
+ * @param {Array<string>} data 
+ */
 async function executeQuery(query, data) {
 	let session = await mysqlx.getSession(dbConfig);
 	if (typeof data == 'undefined'){
@@ -143,7 +145,6 @@ async function sendTrackingMessage(data) {
 }
 // End
 
-
 // -------------------------------------------------------
 // HTML helper to send a response to the client
 // -------------------------------------------------------
@@ -152,41 +153,37 @@ function sendResponse(res, html) {
 
 	res.send(`<!DOCTYPE html>
 			<html lang="en">
-			
-			<head>
-				<meta charset="UTF-8">
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<title>Document</title>
-			
-				<!--Import Google Icon Font-->
-				<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-				<!--Import materialize.css-->
-				<link rel="stylesheet" href="/materialize.min.css" type="text/css">
-				<!--Import Custom Styles-->
-				<link href="/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
-			</head>
-			
-			<body>
-			
-				${html}
-			
-				<!--<script src="/jquery.min.js"></script>-->
-				<script src="/materialize.min.js"></script>
-				<script src="/core.js"></script>
-				<script src="/charts.js"></script>
-				<script src="/animated.js"></script>
-				<script src="/script.js"></script>
-			</body>
-			
+				<head>
+					<meta charset="UTF-8">
+					<meta name="viewport" content="width=device-width, initial-scale=1.0">
+					<title>Dashboard</title>
+				
+					<!--Import Google Icon Font-->
+					<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+					<!--Import materialize.css-->
+					<link rel="stylesheet" href="/materialize.min.css" type="text/css">
+					<!--Import Custom Styles-->
+					<link href="/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+				</head>
+				<body>
+					${html}
+					<!--Import external JS-->
+					<script src="/materialize.min.js"></script>
+					<script src="/core.js"></script>
+					<script src="/charts.js"></script>
+					<script src="/animated.js"></script>
+					<script src="/script.js"></script>
+				</body>
 			</html>
 		`)
 }
 
-// Get popular missions (from db only)
+/**
+ * Load list of seasons
+ */
 async function getAllSeasons() {
 	const query = "SELECT * FROM allSeasons ORDER BY n_season DESC"
 	const key = 'allSeasons'
-
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
@@ -209,12 +206,12 @@ async function getAllSeasons() {
 	}
 }
 
+/**
+ * Load list of all people
+ */
 async function getAllPeople() {
-
 	const query = "SELECT * FROM allPeople ORDER BY person DESC"
-
 	const key = 'allPeople'
-
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
@@ -232,17 +229,18 @@ async function getAllPeople() {
 				await memcached.set(key, data, cacheTimeSecs);
 			return { result: data, cached: false }
 		} else {
-			throw "No seasons found"
+			throw "No people found"
 		}
 	}
 }
 
+/**
+ * Load list of people, wich speaks in specific season
+ * @param {string} season 
+ */
 async function getPeopleOfSeason(season) {
-
 	const query = "SELECT DISTINCT person FROM sentence where n_season = ?"
-
 	const key = 'peopleOfSeason_' + season
-
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
@@ -261,17 +259,18 @@ async function getPeopleOfSeason(season) {
 				await memcached.set(key, data, cacheTimeSecs);
 			return { result: data, cached: false }
 		} else {
-			throw "No seasons found"
+			throw "No people found"
 		}
 	}
 }
 
+/**
+ * Returns number of spoken sentences and participation in seasons
+ * @param {string} person 
+ */
 async function getPerson(person) {
-
 	const query = "SELECT count(sentence) as CountSentence, count(DISTINCT(n_season)) AS CountSeasons FROM sentence where person like ?"
-
 	const key = 'person_' + person.replace(/ /gi, "_");
-
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
@@ -289,7 +288,7 @@ async function getPerson(person) {
 				await memcached.set(key, result, cacheTimeSecs);
 			return { ...result, cached: false }
 		} else {
-			throw "No seasons found"
+			throw "Person not found"
 		}
 	}
 }
@@ -311,21 +310,19 @@ app.get("/", (req, res) => {
 			.join("\n")
 		
 		const peopleHtml = people.result
-		.map(p => `<li class="collection-item"> <a href='person/${entities.encode(p.name)}' target='_blank'>${p.name}</a></li>`)
-		.join("\n")
+			.map(p => `<li class="collection-item"> <a href='person/${p.name}' target='_blank'>${p.name}</a></li>`)
+			.join("\n")
 
 		const peopleChart = people.result
-		.map(p =>  {
-
-			let person = {
-				category: p.name,
-				negative1: (Math.floor((Math.random() * 4500) + 1))*(-1),
-				negative2: (Math.floor((Math.random() * 4500) + 1))*(-1),
-				positive1: (Math.floor((Math.random() * 3000) + 1)),
-				positive2: (Math.floor((Math.random() * 3000) + 1))
-			}
-			return person
-		})
+			.map(p =>  {
+				return {
+					category: p.name,
+					negative1: (Math.floor((Math.random() * 4500) + 1))*(-1),
+					negative2: (Math.floor((Math.random() * 4500) + 1))*(-1),
+					positive1: (Math.floor((Math.random() * 3000) + 1)),
+					positive2: (Math.floor((Math.random() * 3000) + 1))
+				}
+			})
 
 		const html =`			
 				<header>
@@ -334,8 +331,9 @@ app.get("/", (req, res) => {
 						<div class="nav-wrapper brown darken-4">
 							<a href="#" class="brand-logo">GoT</a>
 							<ul id="nav-mobile" class="right hide-on-med-and-down">
-								<li><a href="index.html#season">Staffel</a></li>
-								<li><a href="index.html#person">Person</a></li>
+								<li><a href="./#season">Staffeln</a></li>
+								<li><a href="./#person">Personen</a></li>
+								<li><a href="./#info">Info</a></li>
 							</ul>
 						</div>
 					</nav>
@@ -372,7 +370,7 @@ app.get("/", (req, res) => {
 				</main>
 				<footer>
 				<hr>
-				<h2>Information about the generated page</h4>
+				<h2 id="info">Information about the generated page</h4>
 				<ul>
 					<li>Server: ${os.hostname()}</li>
 					<li>Date: ${new Date()}</li>
@@ -395,7 +393,6 @@ app.get("/", (req, res) => {
 						// Add data
 						chart2.data = ${JSON.stringify(peopleChart)};
 
-
 						// Create axes
 						var categoryAxis = chart2.yAxes.push(new am4charts.CategoryAxis());
 						categoryAxis.dataFields.category = "category";
@@ -404,7 +401,6 @@ app.get("/", (req, res) => {
 						categoryAxis.renderer.minGridDistance = 20;
 						categoryAxis.renderer.axisFills.template.disabled = false;
 						categoryAxis.renderer.axisFills.template.fillOpacity = 0.05;
-
 
 						var valueAxis = chart2.xAxes.push(new am4charts.ValueAxis());
 						valueAxis.min = -9000;
@@ -469,7 +465,7 @@ app.get("/", (req, res) => {
 })
 
 // -------------------------------------------------------
-// Get a data of specific season (from cache or DB)
+// Show data of specific season (from cache or DB)
 // -------------------------------------------------------
 
 app.get("/season/:season", (req, res) => {
@@ -550,7 +546,6 @@ app.get("/season/:season", (req, res) => {
 					// Add data
 					chart2.data = ${JSON.stringify(peopleChart)};
 
-
 					// Create axes
 					var categoryAxis = chart2.yAxes.push(new am4charts.CategoryAxis());
 					categoryAxis.dataFields.category = "category";
@@ -559,7 +554,6 @@ app.get("/season/:season", (req, res) => {
 					categoryAxis.renderer.minGridDistance = 20;
 					categoryAxis.renderer.axisFills.template.disabled = false;
 					categoryAxis.renderer.axisFills.template.fillOpacity = 0.05;
-
 
 					var valueAxis = chart2.xAxes.push(new am4charts.ValueAxis());
 					valueAxis.min = -9000;
@@ -625,7 +619,7 @@ app.get("/season/:season", (req, res) => {
 });
 
 // -------------------------------------------------------
-// Get a data of specific person (from cache or DB)
+// Show data of specific person (from cache or DB)
 // -------------------------------------------------------
 
 app.get("/person/:person", (req, res) => {
