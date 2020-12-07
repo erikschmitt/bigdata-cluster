@@ -1,4 +1,4 @@
-# Use Case: Popular NASA Shuttle Missions
+# Use Case: Sentiment Analysis for Sentences in Game of Thrones 
 
 ```json
 { 
@@ -26,3 +26,9 @@ helm install --namespace=default --set hdfs.dataNode.replicas=2 --set yarn.nodeM
 ## Deploy
 
 To develop using [Skaffold](https://skaffold.dev/), use `skaffold dev`. 
+
+
+## Stop test
+
+1. press `Strg+C` in terminal to stop skaffold
+2. use `helm uninstall my-hadoop-cluster` to prevent hdfs id error on restart
