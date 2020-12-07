@@ -1,7 +1,6 @@
 const os = require('os')
 const dns = require('dns').promises
 const { program: optionparser } = require('commander')
-const { Kafka } = require('kafkajs')
 const mysqlx = require('@mysql/xdevapi');
 const MemcachePlus = require('memcache-plus');
 const express = require('express')
@@ -9,7 +8,6 @@ const express = require('express')
 const app = express()
 
 const cacheTimeSecs = 15
-const numberOfMissions = 30
 app.use(express.static('css'));
 app.use(express.static('js'));
 
@@ -21,10 +19,6 @@ let options = optionparser
 	.storeOptionsAsProperties(true)
 	// Web server
 	.option('--port <port>', "Web server port", 3000)
-	// Kafka options
-	.option('--kafka-broker <host:port>', "Kafka bootstrap host:port", "my-cluster-kafka-bootstrap:9092")
-	.option('--kafka-topic-tracking <topic>', "Kafka topic to tracking data send to", "tracking-data")
-	.option('--kafka-client-id < id > ', "Kafka client ID", "tracker-" + Math.floor(Math.random() * 100000))
 	// Memcached options
 	.option('--memcached-hostname <hostname>', 'Memcached hostname (may resolve to multiple IPs)', 'my-memcached-service')
 	.option('--memcached-port <port>', 'Memcached port', 11211)
@@ -115,37 +109,6 @@ async function getFromCache(key) {
 }
 
 // -------------------------------------------------------
-// Kafka Configuration
-// -------------------------------------------------------
-
-// Kafka connection
-const kafka = new Kafka({
-	clientId: options.kafkaClientId,
-	brokers: [options.kafkaBroker],
-	retry: {
-		retries: 0
-	}
-})
-
-const producer = kafka.producer()
-// End
-
-// Send tracking message to Kafka
-async function sendTrackingMessage(data) {
-	//Ensure the producer is connected
-	await producer.connect()
-
-	//Send message
-	await producer.send({
-		topic: options.kafkaTopicTracking,
-		messages: [
-			{ value: JSON.stringify(data) }
-		]
-	})
-}
-// End
-
-// -------------------------------------------------------
 // HTML helper to send a response to the client
 // -------------------------------------------------------
 
@@ -182,13 +145,16 @@ function sendResponse(res, html) {
  * Load list of seasons
  */
 async function getAllSeasons() {
+	let timeStart = process.hrtime()
 	const query = "SELECT * FROM allSeasons ORDER BY n_season DESC"
 	const key = 'allSeasons'
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
 		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} seasons found`)
-		return { result: cachedata, cached: true }
+		let timeEnd = process.hrtime(timeStart)
+		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+		return { result: cachedata, cached: true, execTime: timeResponse }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -199,7 +165,10 @@ async function getAllSeasons() {
 			console.log(`Got ${Object.keys(data).length} seasons in database => now store in cache`)
 			if (memcached)
 				await memcached.set(key, data, cacheTimeSecs);
-			return { result: data, cached: false }
+			
+			let timeEnd = process.hrtime(timeStart)
+			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+			return { result: data, cached: false, execTime: timeResponse }
 		} else {
 			throw "No seasons found"
 		}
@@ -210,13 +179,16 @@ async function getAllSeasons() {
  * Load list of all people
  */
 async function getAllPeople() {
+	let timeStart = process.hrtime()
 	const query = "SELECT * FROM allPeople ORDER BY person DESC"
 	const key = 'allPeople'
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
 		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} people found`)
-		return { result: cachedata, cached: true }
+		let timeEnd = process.hrtime(timeStart)
+		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+		return { result: cachedata, cached: true, execTime: timeResponse }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -227,7 +199,10 @@ async function getAllPeople() {
 			console.log(`Got ${Object.keys(data).length} people in database => now store in cache`)
 			if (memcached)
 				await memcached.set(key, data, cacheTimeSecs);
-			return { result: data, cached: false }
+
+			let timeEnd = process.hrtime(timeStart)
+			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+			return { result: data, cached: false, execTime: timeResponse }
 		} else {
 			throw "No people found"
 		}
@@ -239,13 +214,16 @@ async function getAllPeople() {
  * @param {string} season 
  */
 async function getPeopleOfSeason(season) {
+	let timeStart = process.hrtime()
 	const query = "SELECT DISTINCT person FROM sentence where n_season = ?"
 	const key = 'peopleOfSeason_' + season
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
 		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} people found`)
-		return { result: cachedata, cached: true }
+		let timeEnd = process.hrtime(timeStart)
+		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms";
+		return { result: cachedata, cached: true, execTime: timeResponse }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -257,7 +235,10 @@ async function getPeopleOfSeason(season) {
 			console.log(`Got ${Object.keys(data).length} people for season ${season} in database => now store in cache`)
 			if (memcached)
 				await memcached.set(key, data, cacheTimeSecs);
-			return { result: data, cached: false }
+
+			let timeEnd = process.hrtime(timeStart)
+			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+			return { result: data, cached: false, execTime: timeResponse }
 		} else {
 			throw "No people found"
 		}
@@ -269,13 +250,16 @@ async function getPeopleOfSeason(season) {
  * @param {string} person 
  */
 async function getPerson(person) {
+	let timeStart = process.hrtime()
 	const query = "SELECT count(sentence) as CountSentence, count(DISTINCT(n_season)) AS CountSeasons FROM sentence where person like ?"
 	const key = 'person_' + person.replace(/ /gi, "_");
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
 		console.log(`Cache hit for key=${key}, ${cachedata.toString()}data found`)
-		return { ...cachedata, cached: true }
+		let timeEnd = process.hrtime(timeStart)
+		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+		return { ...cachedata, cached: true, execTime: timeResponse }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -286,7 +270,10 @@ async function getPerson(person) {
 			console.log(`Got countSentence: ${result.countSentence} and countSeasons: ${result.countSeasons} in database => now store in cache`)
 			if (memcached)
 				await memcached.set(key, result, cacheTimeSecs);
-			return { ...result, cached: false }
+
+			let timeEnd = process.hrtime(timeStart)
+			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+			return { ...result, cached: false, execTime: timeResponse }
 		} else {
 			throw "Person not found"
 		}
@@ -376,7 +363,9 @@ app.get("/", (req, res) => {
 					<li>Date: ${new Date()}</li>
 					<li>Using ${memcachedServers.length} memcached Servers: ${memcachedServers}</li>
 					<li>Cached result seasons: ${season.cached}</li>
+					<li>Response time seasons: ${season.execTime}</li>
 					<li>Cached result people: ${people.cached}</li>
+					<li>Response time people: ${people.execTime}</li>
 				</ul>
 				</footer>
 				<script>
@@ -530,6 +519,7 @@ app.get("/season/:season", (req, res) => {
 					<li>Date: ${new Date()}</li>
 					<li>Using ${memcachedServers.length} memcached Servers: ${memcachedServers}</li>
 					<li>Cached result: ${personOfSeason.cached}</li>
+					<li>Response time result: ${personOfSeason.execTime}</li>
 				</ul>
 				</footer>
 				<script>
@@ -671,6 +661,7 @@ app.get("/person/:person", (req, res) => {
 					<li>Date: ${new Date()}</li>
 					<li>Using ${memcachedServers.length} memcached Servers: ${memcachedServers}</li>
 					<li>Cached result: ${personData.cached}</li>
+					<li>Response time result: ${personData.execTime}</li>
 				</ul>
 				</footer>
 				<script>
