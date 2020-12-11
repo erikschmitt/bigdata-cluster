@@ -8,8 +8,6 @@ const express = require('express')
 const app = express()
 
 const cacheTimeSecs = 15
-app.use(express.static('css'));
-app.use(express.static('js'));
 
 // -------------------------------------------------------
 // Command-line options
@@ -125,18 +123,18 @@ function sendResponse(res, html) {
 					<!--Import Google Icon Font-->
 					<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 					<!--Import materialize.css-->
-					<link rel="stylesheet" href="/materialize.min.css" type="text/css">
+					<link rel="stylesheet" href="/static/materialize.min.css" type="text/css">
 					<!--Import Custom Styles-->
-					<link href="/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+					<link href="/static/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
 				</head>
 				<body>
 					${html}
 					<!--Import external JS-->
-					<script src="/materialize.min.js"></script>
-					<script src="/core.js"></script>
-					<script src="/charts.js"></script>
-					<script src="/animated.js"></script>
-					<script src="/script.js"></script>
+					<script src="/static/materialize.min.js"></script>
+					<script src="/static/core.js"></script>
+					<script src="/static/charts.js"></script>
+					<script src="/static/animated.js"></script>
+					<script src="/static/script.js"></script>
 				</body>
 			</html>
 		`)

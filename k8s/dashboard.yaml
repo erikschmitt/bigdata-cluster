@@ -1,4 +1,4 @@
-#Begin: Deployment
+#Begin: Deployment - Dashboard
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,7 +22,8 @@ spec:
             - containerPort: 3000
 
 ---
-#Begin: Service
+
+#Begin: Service - Dashboard
 kind: Service
 apiVersion: v1
 metadata:
@@ -37,21 +38,69 @@ spec:
 #End: Service
 
 ---
+
+#Begin: Deployment - Server for static files
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static
+  labels:
+    app: static
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: static
+  template:
+    metadata:
+      labels:
+        app: static
+    spec:
+      containers:
+        - name: static
+          image: ngx
+          ports:
+            - containerPort: 80
+
+---
+#Begin: Service - Server for static files
+kind: Service
+apiVersion: v1
+metadata:
+  name: static-service
+spec:
+  selector:
+    app: static
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 80
+#End: Service
+
+---
+
 #Begin: Ingress
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: dashboard-ingress
-#   annotations:
-#     nginx.ingress.kubernetes.io/rewrite-target: /
-# spec:
-#   rules:
-#     - http:
-#         paths:
-#           - path: /
-#             pathType: Prefix
-#             backend:
-#               service:
-#                 name: dashboard-service
-#                 port:
-#                   number: 3001
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sentiment-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /static/(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: static-service
+                port:
+                  number: 80
+          - path: /(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: dashboard-service
+                port:
+                  number: 3000
