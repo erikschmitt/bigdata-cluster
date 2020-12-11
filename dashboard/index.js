@@ -356,7 +356,7 @@ app.get("/", (req, res) => {
 				</main>
 				<footer>
 				<hr>
-				<h2 id="info">Information about the generated page</h4>
+				<h3 id="info">Information about the generated page</h3>
 				<ul>
 					<li>Server: ${os.hostname()}</li>
 					<li>Date: ${new Date()}</li>
@@ -512,7 +512,7 @@ app.get("/season/:season", (req, res) => {
 				</main>
 				<footer>
 				<hr>
-				<h2>Information about the generated page</h4>
+				<h3>Information about the generated page</h3>
 				<ul>
 					<li>Server: ${os.hostname()}</li>
 					<li>Date: ${new Date()}</li>
@@ -654,7 +654,7 @@ app.get("/person/:person", (req, res) => {
 				</main>
 				<footer>
 				<hr>
-				<h2>Information about the generated page</h4>
+				<h3>Information about the generated page</h3>
 				<ul>
 					<li>Server: ${os.hostname()}</li>
 					<li>Date: ${new Date()}</li>
