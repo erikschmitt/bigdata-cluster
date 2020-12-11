@@ -209,6 +209,52 @@ async function getAllPeople() {
 }
 
 /**
+ * Load chart data of all people
+ */
+async function getChartAllPeople() {
+	let timeStart = process.hrtime()
+	const query = "SELECT * FROM allPeople ORDER BY person DESC"
+	const key = 'chartAllPeople'
+	let cachedata = await getFromCache(key)
+
+	if (cachedata) {
+		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} people found`)
+		let timeEnd = process.hrtime(timeStart)
+		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+		return { result: cachedata, cached: true, execTime: timeResponse }
+	} else {
+		console.log(`Cache miss for key=${key}, querying database`)
+
+		let people = (await executeQuery(query))
+						.fetchAll()
+						.map(row => ({ name : row[0] }))
+
+		let data = people
+		.map(p =>  {
+			return {
+				category: p.name,
+				negative1: (Math.floor((Math.random() * 4500) + 1))*(-1),
+				negative2: (Math.floor((Math.random() * 4500) + 1))*(-1),
+				positive1: (Math.floor((Math.random() * 3000) + 1)),
+				positive2: (Math.floor((Math.random() * 3000) + 1))
+			}
+		})
+
+		if (data) {
+			console.log(`Got ${Object.keys(data).length} chart datasets for people in database => now store in cache`)
+			if (memcached)
+				await memcached.set(key, data, cacheTimeSecs);
+
+			let timeEnd = process.hrtime(timeStart)
+			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+			return { result: data, cached: false, execTime: timeResponse }
+		} else {
+			throw "No people found"
+		}
+	}
+}
+
+/**
  * Load list of people, wich speaks in specific season
  * @param {string} season 
  */
@@ -245,6 +291,53 @@ async function getPeopleOfSeason(season) {
 }
 
 /**
+ * Load chart data with sentiment of people, wich speaks in specific season
+ * @param {string} season 
+ */
+async function getSentimentOfSeason(season) {
+	let timeStart = process.hrtime()
+	const query = "SELECT DISTINCT person FROM sentence where n_season = ?"
+	const key = 'sentimentOfSeason_' + season
+	let cachedata = await getFromCache(key)
+
+	if (cachedata) {
+		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} people found`)
+		let timeEnd = process.hrtime(timeStart)
+		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms";
+		return { result: cachedata, cached: true, execTime: timeResponse }
+	} else {
+		console.log(`Cache miss for key=${key}, querying database`)
+
+		let sentiment = (await executeQuery(query, [season]))
+							.fetchAll()
+							.map(row => ({ name : row[0] }))
+
+		let data = sentiment
+		.map(p =>  {
+			return {
+				category: p.name,
+				negative1: (Math.floor((Math.random() * 4500) + 1))*(-1),
+				negative2: (Math.floor((Math.random() * 4500) + 1))*(-1),
+				positive1: (Math.floor((Math.random() * 3000) + 1)),
+				positive2: (Math.floor((Math.random() * 3000) + 1))
+			}
+		})
+		
+		if (data) {
+			console.log(`Got ${Object.keys(data).length} sentiment for season ${season} in database => now store in cache`)
+			if (memcached)
+				await memcached.set(key, data, cacheTimeSecs);
+
+			let timeEnd = process.hrtime(timeStart)
+			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+			return { result: data, cached: false, execTime: timeResponse }
+		} else {
+			throw "No people found"
+		}
+	}
+}
+
+/**
  * Returns number of spoken sentences and participation in seasons
  * @param {string} person 
  */
@@ -266,13 +359,140 @@ async function getPerson(person) {
 		
 		if (data) {
 			let result = { countSentence : data[0], countSeasons  : data[1]  }
-			console.log(`Got countSentence: ${result.countSentence} and countSeasons: ${result.countSeasons} in database => now store in cache`)
+			console.log(`Got countSentence: ${result.countSentence} and countSeasons: ${result.countSeasons} for ${person}  in database => now store in cache`)
 			if (memcached)
 				await memcached.set(key, result, cacheTimeSecs);
 
 			let timeEnd = process.hrtime(timeStart)
 			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
 			return { ...result, cached: false, execTime: timeResponse }
+		} else {
+			throw "Person not found"
+		}
+	}
+}
+
+/**
+ * Returns number of spoken sentences and participation in seasons
+ * @param {string} person 
+ */
+async function getChartPerson(person) {
+	let timeStart = process.hrtime()
+	const query = "SELECT count(sentence) as CountSentence, count(DISTINCT(n_season)) AS CountSeasons FROM sentence where person like ?"
+	const key = 'chartPerson_' + person.replace(/ /gi, "_");
+	let cachedata = await getFromCache(key)
+
+	if (cachedata) {
+		console.log(`Cache hit for key=${key}, data found`)
+		let timeEnd = process.hrtime(timeStart)
+		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+		return { result: cachedata, cached: true, execTime: timeResponse }
+	} else {
+		console.log(`Cache miss for key=${key}, querying database`)
+
+		//let data = (await executeQuery(query, [person])).fetchOne()
+
+		let data = [
+			{
+				"season": "season 1",
+				"sentiment": "-5",
+				"value": 2990
+			},
+			{
+				"season": "season 2",
+				"sentiment": "-5",
+				"value": 2520
+			},
+			{
+				"season": "season 3",
+				"sentiment": "-5",
+				"value": 2334
+			},
+			{
+				"season": "season 4",
+				"sentiment": "-5",
+				"value": 2230
+			},
+			{
+				"season": "season 5",
+				"sentiment": "-5",
+				"value": 2325
+			},
+			{
+				"season": "season 6",
+				"sentiment": "-5",
+				"value": 2019
+			},
+		
+			{
+				"season": "season 1",
+				"sentiment": "0",
+				"value": 3346
+			},
+			{
+				"season": "season 2",
+				"sentiment": "0",
+				"value": 2725
+			},
+			{
+				"season": "season 3",
+				"sentiment": "0",
+				"value": 3052
+			},
+			{
+				"season": "season 4",
+				"sentiment": "0",
+				"value": 3876
+			},
+			{
+				"season": "season 5",
+				"sentiment": "0",
+				"value": 4453
+			},
+			{
+				"season": "season 6",
+				"sentiment": "0",
+				"value": 3972
+			},
+			{
+				"season": "season 1",
+				"sentiment": "+5",
+				"value": 4468
+			},
+			{
+				"season": "season 2",
+				"sentiment": "+5",
+				"value": 3306
+			},
+			{
+				"season": "season 3",
+				"sentiment": "+5",
+				"value": 3906
+			},
+			{
+				"season": "season 4",
+				"sentiment": "+5",
+				"value": 4413
+			},
+			{
+				"season": "season 5",
+				"sentiment": "+5",
+				"value": 4726
+			},
+			{
+				"season": "season 6",
+				"sentiment": "+5",
+				"value": 4584
+			}];
+		
+		if (data) {
+			console.log(`Got ${Object.keys(data).length} sentiment for ${person} in database => now store in cache`)
+			if (memcached)
+				await memcached.set(key, data, cacheTimeSecs);
+
+			let timeEnd = process.hrtime(timeStart)
+			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
+			return { result: data, cached: false, execTime: timeResponse }
 		} else {
 			throw "Person not found"
 		}
@@ -287,9 +507,11 @@ async function getPerson(person) {
 // Return HTML for start page
 app.get("/", (req, res) => {
 
-	Promise.all([getAllSeasons(), getAllPeople()]).then(values => {
+	Promise.all([getAllSeasons(), getAllPeople(), getChartAllPeople()]).then(values => {
 		const season = values[0]
 		const people = values[1]
+		const chart = values[2]
+		const peopleChart = chart.result
 
 		const seasonsHtml = season.result
 			.map(seas => `<li class="collection-item"> <a href='season/${seas.season}' target='_blank'>Staffel ${seas.season}</a></li>`)
@@ -298,17 +520,6 @@ app.get("/", (req, res) => {
 		const peopleHtml = people.result
 			.map(p => `<li class="collection-item"> <a href='person/${p.name}' target='_blank'>${p.name}</a></li>`)
 			.join("\n")
-
-		const peopleChart = people.result
-			.map(p =>  {
-				return {
-					category: p.name,
-					negative1: (Math.floor((Math.random() * 4500) + 1))*(-1),
-					negative2: (Math.floor((Math.random() * 4500) + 1))*(-1),
-					positive1: (Math.floor((Math.random() * 3000) + 1)),
-					positive2: (Math.floor((Math.random() * 3000) + 1))
-				}
-			})
 
 		const html =`			
 				<header>
@@ -361,10 +572,12 @@ app.get("/", (req, res) => {
 					<li>Server: ${os.hostname()}</li>
 					<li>Date: ${new Date()}</li>
 					<li>Using ${memcachedServers.length} memcached Servers: ${memcachedServers}</li>
-					<li>Cached result seasons: ${season.cached}</li>
-					<li>Response time seasons: ${season.execTime}</li>
-					<li>Cached result people: ${people.cached}</li>
-					<li>Response time people: ${people.execTime}</li>
+					<li>Cached result seasons list: ${season.cached}</li>
+					<li>Response time seasons list: ${season.execTime}</li>
+					<li>Cached result people list: ${people.cached}</li>
+					<li>Response time people list: ${people.execTime}</li>
+					<li>Cached result people chart: ${chart.cached}</li>
+					<li>Response time people chart: ${chart.execTime}</li>
 				</ul>
 				</footer>
 				<script>
@@ -460,25 +673,14 @@ app.get("/season/:season", (req, res) => {
 	let season = req.params["season"]
 
 	
-	Promise.all([getPeopleOfSeason(season)]).then(values => {
+	Promise.all([getPeopleOfSeason(season), getSentimentOfSeason(season)]).then(values => {
 		const personOfSeason = values[0]
+		const chart = values[1]
+		const peopleChart = chart.result
 
 		const peopleHtml = personOfSeason.result
 		.map(p => `<li class="collection-item"> ${p.name}</li>`)
 		.join("\n")
-
-		const peopleChart = personOfSeason.result
-				.map(p =>  {
-
-					let person = {
-						category: p.name,
-						negative1: (Math.floor((Math.random() * 4500) + 1))*(-1),
-						negative2: (Math.floor((Math.random() * 4500) + 1))*(-1),
-						positive1: (Math.floor((Math.random() * 3000) + 1)),
-						positive2: (Math.floor((Math.random() * 3000) + 1))
-					}
-					return person
-				})
 
 		console.log(JSON.stringify(peopleChart))
 		const html =`			
@@ -517,8 +719,10 @@ app.get("/season/:season", (req, res) => {
 					<li>Server: ${os.hostname()}</li>
 					<li>Date: ${new Date()}</li>
 					<li>Using ${memcachedServers.length} memcached Servers: ${memcachedServers}</li>
-					<li>Cached result: ${personOfSeason.cached}</li>
-					<li>Response time result: ${personOfSeason.execTime}</li>
+					<li>Cached result list: ${personOfSeason.cached}</li>
+					<li>Response time result list: ${personOfSeason.execTime}</li>
+					<li>Cached result chart: ${chart.cached}</li>
+					<li>Response time chart: ${chart.execTime}</li>
 				</ul>
 				</footer>
 				<script>
@@ -614,8 +818,10 @@ app.get("/season/:season", (req, res) => {
 app.get("/person/:person", (req, res) => {
 	let person = req.params["person"]
 
-	Promise.all([getPerson(person)]).then(values => {
+	Promise.all([getPerson(person), getChartPerson(person)]).then(values => {
 		const personData = values[0]
+		const chart = values[1]
+		const personChart = chart.result
 
 		const html =`			
 				<header>
@@ -659,8 +865,10 @@ app.get("/person/:person", (req, res) => {
 					<li>Server: ${os.hostname()}</li>
 					<li>Date: ${new Date()}</li>
 					<li>Using ${memcachedServers.length} memcached Servers: ${memcachedServers}</li>
-					<li>Cached result: ${personData.cached}</li>
-					<li>Response time result: ${personData.execTime}</li>
+					<li>Cached result list: ${personData.cached}</li>
+					<li>Response time result list: ${personData.execTime}</li>
+					<li>Cached result chart: ${chart.cached}</li>
+					<li>Response time result chart: ${chart.execTime}</li>
 				</ul>
 				</footer>
 				<script>
@@ -735,99 +943,7 @@ app.get("/person/:person", (req, res) => {
 						heatLegend.valueAxis.hideTooltip();
 						})
 						
-						chart.data = [
-						{
-							"season": "season 1",
-							"sentiment": "-5",
-							"value": 2990
-						},
-						{
-							"season": "season 2",
-							"sentiment": "-5",
-							"value": 2520
-						},
-						{
-							"season": "season 3",
-							"sentiment": "-5",
-							"value": 2334
-						},
-						{
-							"season": "season 4",
-							"sentiment": "-5",
-							"value": 2230
-						},
-						{
-							"season": "season 5",
-							"sentiment": "-5",
-							"value": 2325
-						},
-						{
-							"season": "season 6",
-							"sentiment": "-5",
-							"value": 2019
-						},
-					
-						{
-							"season": "season 1",
-							"sentiment": "0",
-							"value": 3346
-						},
-						{
-							"season": "season 2",
-							"sentiment": "0",
-							"value": 2725
-						},
-						{
-							"season": "season 3",
-							"sentiment": "0",
-							"value": 3052
-						},
-						{
-							"season": "season 4",
-							"sentiment": "0",
-							"value": 3876
-						},
-						{
-							"season": "season 5",
-							"sentiment": "0",
-							"value": 4453
-						},
-						{
-							"season": "season 6",
-							"sentiment": "0",
-							"value": 3972
-						},
-						{
-							"season": "season 1",
-							"sentiment": "+5",
-							"value": 4468
-						},
-						{
-							"season": "season 2",
-							"sentiment": "+5",
-							"value": 3306
-						},
-						{
-							"season": "season 3",
-							"sentiment": "+5",
-							"value": 3906
-						},
-						{
-							"season": "season 4",
-							"sentiment": "+5",
-							"value": 4413
-						},
-						{
-							"season": "season 5",
-							"sentiment": "+5",
-							"value": 4726
-						},
-						{
-							"season": "season 6",
-							"sentiment": "+5",
-							"value": 4584
-						},
-						];
+						chart.data = ${JSON.stringify(personChart)};
 					}
 				</script>
 			
