@@ -1,13 +1,21 @@
-# Use Case: Sentiment Analysis for Sentences in Game of Thrones 
+# Hadoop Cluster Sentiment Analyse
+## Use Case: Sentiment Analysis with Apache Spark for Sentences in Game of Thrones 
 
 ```json
 { 
-	mission: 'sts-10', 
+	mission: "sts-10", 
 	timestamp: 1604325221 
 }
 ```
 
 ## Prerequisites
+
+A running Kubernetes cluster with ingress, for example with minikube on Linux
+
+```bash
+minikube addons  enable ingress
+minikube start --driver=docker --memory 10240 --cpus 7
+```
 
 A running Strimzi.io Kafka operator
 
