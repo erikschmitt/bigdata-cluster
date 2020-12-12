@@ -120,8 +120,6 @@ function sendResponse(res, html) {
 					<title>Dashboard</title>
 					<link rel="icon" href="data:,">
 				
-					<!--Import Google Icon Font-->
-					<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 					<!--Import materialize.css-->
 					<link rel="stylesheet" href="/static/materialize.min.css" type="text/css">
 					<!--Import Custom Styles-->
@@ -568,17 +566,37 @@ app.get("/", (req, res) => {
 				<footer>
 				<hr>
 				<h3 id="info">Information about the generated page</h3>
-				<ul>
-					<li>Server: ${os.hostname()}</li>
-					<li>Date: ${new Date()}</li>
-					<li>Using ${memcachedServers.length} memcached Servers: ${memcachedServers}</li>
-					<li>Cached result seasons list: ${season.cached}</li>
-					<li>Response time seasons list: ${season.execTime}</li>
-					<li>Cached result people list: ${people.cached}</li>
-					<li>Response time people list: ${people.execTime}</li>
-					<li>Cached result people chart: ${chart.cached}</li>
-					<li>Response time people chart: ${chart.execTime}</li>
-				</ul>
+				<table>
+					<tr>
+						<td>Server:</td>
+						<td>${os.hostname()}</td>
+						<td>Date:</td>
+						<td>${new Date()}</td>
+					</tr>
+					<tr>
+						<td>Using ${memcachedServers.length} memcached Servers:</td>
+						<td>${memcachedServers}</td>
+
+					</tr>
+					<tr>
+						<td>Cached result seasons list:</td>
+						<td>${season.cached}</td>
+						<td>Response time seasons list:</td>
+						<td>${season.execTime}</td>
+					</tr>
+					<tr>
+						<td>Cached result people list:</td>
+						<td>${people.cached}</td>
+						<td>Response time people list:</td>
+						<td>${people.execTime}</td>
+					</tr>
+					<tr>
+						<td>Cached result people chart:</td>
+						<td>${chart.cached}</td>
+						<td>Response time people chart:</td>
+						<td>${chart.execTime}</td>
+					</tr>
+				</table>
 				</footer>
 				<script>
 					// Create chart instance
@@ -682,7 +700,6 @@ app.get("/season/:season", (req, res) => {
 		.map(p => `<li class="collection-item"> ${p.name}</li>`)
 		.join("\n")
 
-		console.log(JSON.stringify(peopleChart))
 		const html =`			
 				<header>
 					<div class="navbar-fixed">
