@@ -1,5 +1,5 @@
 FROM node:alpine
-LABEL maintainer="Dennis Pfisterer, http://dennis-pfisterer.de"
+LABEL maintainer="Erik Schmitt"
 
 # Set node environment, either development or production
 ARG NODE_ENV=production

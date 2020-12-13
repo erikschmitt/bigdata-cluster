@@ -2,15 +2,18 @@ apiVersion: skaffold/v1
 kind: Config
 
 metadata:
-  name: popular-slides
+  name: sentiment
 
 build:
   artifacts:
-    - image: farberg/popular-slides
-      context: web-app
-
     - image: farberg/popular-slides-spark
       context: spark-app
+
+    - image: dashboard
+      context: dashboard
+
+    - image: ngx
+      context: static
 
 deploy:
   kubectl:
