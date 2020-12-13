@@ -3,10 +3,10 @@
 
 ## Prerequisites
 
-### Software to install for example with minikube on Ubuntu
+### Software to install, for example with minikube on Ubuntu
 
 - A installed docker engine https://docs.docker.com/engine/install/ubuntu/
-- With opptional setup for non-root user https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
+- With optional setup for non-root user https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
 
 - A installed kubectl  https://kubernetes.io/de/docs/tasks/tools/install-kubectl/
 - A installed minikube v1.13.0+ (with Kubernetes Server Version v1.19+) https://minikube.sigs.k8s.io/docs/start/
