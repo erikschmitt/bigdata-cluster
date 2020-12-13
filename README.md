@@ -1,21 +1,28 @@
 # Hadoop Cluster Sentiment Analyse
 ## Use Case: Sentiment Analysis with Apache Spark for Sentences in Game of Thrones 
 
-```json
-{ 
-	mission: "sts-10", 
-	timestamp: 1604325221 
-}
-```
-
 ## Prerequisites
 
-A running Kubernetes cluster with ingress, for example with minikube on Linux
+### Software to install for example with minikube on Ubuntu
+
+- A installed docker engine https://docs.docker.com/engine/install/ubuntu/
+- With opptional setup for non-root user https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
+
+- A installed kubectl  https://kubernetes.io/de/docs/tasks/tools/install-kubectl/
+- A installed minikube v1.13.0+ (with Kubernetes Server Version v1.19+) https://minikube.sigs.k8s.io/docs/start/
+- A installed helm https://helm.sh/docs/intro/install/
+- A installed Skaffold https://skaffold.dev/docs/install/
+
+### startup
+A running Kubernetes cluster with ingress, 
 
 ```bash
-minikube addons  enable ingress
 minikube start --driver=docker --memory 10240 --cpus 7
+eval $(minikube docker-env)
+minikube addons  enable ingress
 ```
+
+
 
 A running Strimzi.io Kafka operator
 
