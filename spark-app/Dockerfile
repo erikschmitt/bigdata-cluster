@@ -1,5 +1,5 @@
 FROM bitnami/spark:3.0.0
-LABEL maintainer="Dennis Pfisterer, http://dennis-pfisterer.de"
+LABEL maintainer="Manuel Klein"
 WORKDIR /app
 
 #------------------------------------
@@ -56,6 +56,9 @@ RUN rm -rf /app/dependencies
 # Copy application code
 COPY --chown=spark:spark *.py /app/
 
+# Copy csv_files 
+COPY *.csv /app/
+
 #------------------------------------
 # Set entrypoint and use dependencies zip file
 
@@ -75,4 +78,4 @@ ENTRYPOINT spark-submit --verbose \
 	--py-files /app/dependencies.zip \
 	/app/spark-app.py
 
-CMD [""]
+CMD ["/app/csv2producer.py"]
