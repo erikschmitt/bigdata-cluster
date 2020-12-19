@@ -5,8 +5,6 @@ import mysqlx
 
 dbOptions = {"host": "my-app-mysql-service", 'port': 33060, "user": "root", "password": "mysecretpw"}
 dbSchema = 'popular'
-windowDuration = '5 minutes'
-slidingDuration = '1 minute'
 
 # Example Part 1
 # Create a spark session
@@ -23,55 +21,56 @@ kafkaMessages = spark \
     .format("kafka") \
     .option("kafka.bootstrap.servers",
             "my-cluster-kafka-bootstrap:9092") \
-    .option("subscribe", "tracking-data") \
+    .option("subscribe", "got-data") \
     .option("startingOffsets", "earliest") \
     .load()
 
 # Define schema of tracking data
 trackingMessageSchema = StructType() \
-    .add("mission", StringType()) \
-    .add("timestamp", IntegerType())
+    .add("id", IntegerType()) \
+    .add("person", StringType()) \
+    .add("n_serie", IntegerType()) \
+    .add("n_season", IntegerType()) \
+    .add("sentence", StringType())
 
 # Example Part 3
 # Convert value: binary -> JSON -> fields + parsed timestamp
-trackingMessages = kafkaMessages.select(
+sentenceMessages = kafkaMessages.select(
     # Extract 'value' from Kafka message (i.e., the tracking data)
     from_json(
         column("value").cast("string"),
         trackingMessageSchema
     ).alias("json")
 ).select(
-    # Convert Unix timestamp to TimestampType
-    from_unixtime(column('json.timestamp'))
-    .cast(TimestampType())
-    .alias("parsed_timestamp"),
-
     # Select all JSON fields
     column("json.*")
 ) \
-    .withColumnRenamed('json.mission', 'mission') \
-    .withWatermark("parsed_timestamp", windowDuration)
+    .withColumnRenamed('json.id', 'id') \
+    .withColumnRenamed("json.person", "person") \
+    .withColumnRenamed("json.n_serie", "n_serie") \
+    .withColumnRenamed("json.n_season", "n_season") \
+    .withColumnRenamed("json.sentence", "sentence")
 
 # Example Part 4
 # Compute most popular slides
-popular = trackingMessages.groupBy(
-    window(
-        column("parsed_timestamp"),
-        windowDuration,
-        slidingDuration
-    ),
-    column("mission")
-).count().withColumnRenamed('count', 'views')
+# popular = trackingMessages.groupBy(
+#     window(
+#         column("parsed_timestamp"),
+#         windowDuration,
+#         slidingDuration
+#     ),
+#     column("mission")
+# ).count().withColumnRenamed('count', 'views')
 
 # Example Part 5
 # Start running the query; print running counts to the console
-consoleDump = popular \
-    .writeStream \
-    .trigger(processingTime=slidingDuration) \
-    .outputMode("update") \
-    .format("console") \
-    .option("truncate", "false") \
-    .start()
+# consoleDump = popular \
+#     .writeStream \
+#     .trigger(processingTime=slidingDuration) \
+#     .outputMode("update") \
+#     .format("console") \
+#     .option("truncate", "false") \
+#     .start()
 
 # Example Part 6
 
@@ -81,14 +80,13 @@ def saveToDatabase(batchDataframe, batchId):
     def save_to_db(iterator):
         # Connect to database and use schema
         session = mysqlx.get_session(dbOptions)
-        session.sql("USE popular").execute()
+        session.sql("USE sentence").execute()
 
         for row in iterator:
             # Run upsert (insert or update existing)
             sql = session.sql("INSERT INTO popular "
-                              "(mission, count) VALUES (?, ?) "
-                              "ON DUPLICATE KEY UPDATE count=?")
-            sql.bind(row.mission, row.views, row.views).execute()
+                              "(id, person, n_serie, n_season, sentence, sentiment) VALUES (?, ?, ?, ?, ?, ?) ")
+            sql.bind(row.id, row.person, row.n_serie, row.n_season, row.sentence, "4").execute()
 
         session.close()
 
@@ -98,8 +96,8 @@ def saveToDatabase(batchDataframe, batchId):
 # Example Part 7
 
 
-dbInsertStream = popular.writeStream \
-    .trigger(processingTime=slidingDuration) \
+dbInsertStream = sentenceMessages.writeStream \
+    .trigger(processingTime="30 seconds") \
     .outputMode("update") \
     .foreachBatch(saveToDatabase) \
     .start()
