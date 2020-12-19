@@ -23,7 +23,7 @@ def getProducer():
     try:
         kafka_producer = KafkaProducer(bootstrap_servers=kafka_broker,
                                  client_id=randomClientId(),
-                                 value_serializer=labmda x:
+                                 value_serializer=lambda x:
                                  dumps(x).encode("utf-8"),
                                  retries=2)
     except Exception as ex:

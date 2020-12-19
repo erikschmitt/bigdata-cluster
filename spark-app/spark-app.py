@@ -84,7 +84,7 @@ def saveToDatabase(batchDataframe, batchId):
 
         for row in iterator:
             # Run upsert (insert or update existing)
-            sql = session.sql("INSERT INTO popular "
+            sql = session.sql("INSERT INTO sentence "
                               "(id, person, n_serie, n_season, sentence, sentiment) VALUES (?, ?, ?, ?, ?, ?) ")
             sql.bind(row.id, row.person, row.n_serie, row.n_season, row.sentence, "4").execute()
 
