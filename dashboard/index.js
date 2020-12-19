@@ -111,13 +111,13 @@ async function getFromCache(key) {
 // -------------------------------------------------------
 
 function sendResponse(res, html) {
-
+	
 	res.send(`<!DOCTYPE html>
 			<html lang="en">
 				<head>
 					<meta charset="UTF-8">
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
-					<title>Dashboard</title>
+					<title>Sentiment Analysis Dashboard</title>
 					<link rel="icon" href="data:,">
 				
 					<!--Import materialize.css-->
@@ -126,6 +126,9 @@ function sendResponse(res, html) {
 					<link href="/static/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
 				</head>
 				<body>
+				<header><div class="navbar-fixed"><nav>
+						<div class="nav-wrapper brown darken-4"><span class="brand-logo">Sentiment Analyses with Spark - Game of Thrones Subtitles</span></div>
+					</nav></div></header>
 					${html}
 					<!--Import external JS-->
 					<script src="/static/materialize.min.js"></script>
@@ -139,6 +142,16 @@ function sendResponse(res, html) {
 }
 
 /**
+ * 
+ * @param {*} timeStart 
+ * @return {String} 
+ */
+function timeEnd(timeStart) {
+	let time = process.hrtime(timeStart)
+	return time[0] + "s " + time[1] / 1000000 + "ms"
+}
+
+/**
  * Load list of seasons
  */
 async function getAllSeasons() {
@@ -148,10 +161,8 @@ async function getAllSeasons() {
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
-		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} seasons found`)
-		let timeEnd = process.hrtime(timeStart)
-		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-		return { result: cachedata, cached: true, execTime: timeResponse }
+		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} found`)
+		return { result: cachedata, cached: true, execTime: timeEnd(timeStart) }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -159,13 +170,11 @@ async function getAllSeasons() {
 						.fetchAll()
 						.map(row => ({ season : row[0] }))
 		if (data) {
-			console.log(`Got ${Object.keys(data).length} seasons in database => now store in cache`)
+			console.log(`Got ${Object.keys(data).length} for ${key} => now store in cache`)
 			if (memcached)
 				await memcached.set(key, data, cacheTimeSecs);
 			
-			let timeEnd = process.hrtime(timeStart)
-			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-			return { result: data, cached: false, execTime: timeResponse }
+			return { result: data, cached: false, execTime: timeEnd(timeStart) }
 		} else {
 			throw "No seasons found"
 		}
@@ -182,10 +191,8 @@ async function getAllPeople() {
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
-		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} people found`)
-		let timeEnd = process.hrtime(timeStart)
-		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-		return { result: cachedata, cached: true, execTime: timeResponse }
+		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} found`)
+		return { result: cachedata, cached: true, execTime: timeEnd(timeStart) }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -193,13 +200,11 @@ async function getAllPeople() {
 						.fetchAll()
 						.map(row => ({ name : row[0] }))
 		if (data) {
-			console.log(`Got ${Object.keys(data).length} people in database => now store in cache`)
+			console.log(`Got ${Object.keys(data).length} for ${key} => now store in cache`)
 			if (memcached)
 				await memcached.set(key, data, cacheTimeSecs);
 
-			let timeEnd = process.hrtime(timeStart)
-			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-			return { result: data, cached: false, execTime: timeResponse }
+			return { result: data, cached: false, execTime: timeEnd(timeStart) }
 		} else {
 			throw "No people found"
 		}
@@ -217,9 +222,7 @@ async function getChartAllPeople() {
 
 	if (cachedata) {
 		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} people found`)
-		let timeEnd = process.hrtime(timeStart)
-		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-		return { result: cachedata, cached: true, execTime: timeResponse }
+		return { result: cachedata, cached: true, execTime: timeEnd(timeStart) }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -239,13 +242,11 @@ async function getChartAllPeople() {
 		})
 
 		if (data) {
-			console.log(`Got ${Object.keys(data).length} chart datasets for people in database => now store in cache`)
+			console.log(`Got ${Object.keys(data).length} for ${key} => now store in cache`)
 			if (memcached)
 				await memcached.set(key, data, cacheTimeSecs);
 
-			let timeEnd = process.hrtime(timeStart)
-			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-			return { result: data, cached: false, execTime: timeResponse }
+			return { result: data, cached: false, execTime: timeEnd(timeStart) }
 		} else {
 			throw "No people found"
 		}
@@ -263,10 +264,8 @@ async function getPeopleOfSeason(season) {
 	let cachedata = await getFromCache(key)
 
 	if (cachedata) {
-		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} people found`)
-		let timeEnd = process.hrtime(timeStart)
-		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms";
-		return { result: cachedata, cached: true, execTime: timeResponse }
+		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} found`)
+		return { result: cachedata, cached: true, execTime: timeEnd(timeStart) }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -279,9 +278,7 @@ async function getPeopleOfSeason(season) {
 			if (memcached)
 				await memcached.set(key, data, cacheTimeSecs);
 
-			let timeEnd = process.hrtime(timeStart)
-			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-			return { result: data, cached: false, execTime: timeResponse }
+			return { result: data, cached: false, execTime: timeEnd(timeStart) }
 		} else {
 			throw "No people found"
 		}
@@ -300,9 +297,7 @@ async function getSentimentOfSeason(season) {
 
 	if (cachedata) {
 		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} people found`)
-		let timeEnd = process.hrtime(timeStart)
-		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms";
-		return { result: cachedata, cached: true, execTime: timeResponse }
+		return { result: cachedata, cached: true, execTime: timeEnd(timeStart) }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -326,9 +321,7 @@ async function getSentimentOfSeason(season) {
 			if (memcached)
 				await memcached.set(key, data, cacheTimeSecs);
 
-			let timeEnd = process.hrtime(timeStart)
-			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-			return { result: data, cached: false, execTime: timeResponse }
+			return { result: data, cached: false, execTime: timeEnd(timeStart) }
 		} else {
 			throw "No people found"
 		}
@@ -347,9 +340,7 @@ async function getPerson(person) {
 
 	if (cachedata) {
 		console.log(`Cache hit for key=${key}, ${cachedata.toString()}data found`)
-		let timeEnd = process.hrtime(timeStart)
-		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-		return { ...cachedata, cached: true, execTime: timeResponse }
+		return { ...cachedata, cached: true, execTime: timeEnd(timeStart) }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -361,9 +352,7 @@ async function getPerson(person) {
 			if (memcached)
 				await memcached.set(key, result, cacheTimeSecs);
 
-			let timeEnd = process.hrtime(timeStart)
-			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-			return { ...result, cached: false, execTime: timeResponse }
+			return { ...result, cached: false, execTime: timeEnd(timeStart) }
 		} else {
 			throw "Person not found"
 		}
@@ -382,9 +371,7 @@ async function getChartPerson(person) {
 
 	if (cachedata) {
 		console.log(`Cache hit for key=${key}, data found`)
-		let timeEnd = process.hrtime(timeStart)
-		let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-		return { result: cachedata, cached: true, execTime: timeResponse }
+		return { result: cachedata, cached: true, execTime: timeEnd(timeStart) }
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
@@ -488,9 +475,7 @@ async function getChartPerson(person) {
 			if (memcached)
 				await memcached.set(key, data, cacheTimeSecs);
 
-			let timeEnd = process.hrtime(timeStart)
-			let timeResponse = timeEnd[0] + "s " + timeEnd[1] / 1000000 + "ms"
-			return { result: data, cached: false, execTime: timeResponse }
+			return { result: data, cached: false, execTime: timeEnd(timeStart) }
 		} else {
 			throw "Person not found"
 		}
@@ -520,21 +505,7 @@ app.get("/", (req, res) => {
 			.join("\n")
 
 		const html =`			
-				<header>
-					<div class="navbar-fixed">
-					<nav>
-						<div class="nav-wrapper brown darken-4">
-							<a href="#" class="brand-logo">GoT</a>
-							<ul id="nav-mobile" class="right hide-on-med-and-down">
-								<li><a href="./#season">Staffeln</a></li>
-								<li><a href="./#person">Personen</a></li>
-								<li><a href="./#info">Info</a></li>
-							</ul>
-						</div>
-					</nav>
-					</div>
-				</header>
-			
+						
 				<main>
 					<div class="row" id="season">
 						<div class="col s2">
@@ -567,35 +538,11 @@ app.get("/", (req, res) => {
 				<hr>
 				<h3 id="info">Information about the generated page</h3>
 				<table>
-					<tr>
-						<td>Server:</td>
-						<td>${os.hostname()}</td>
-						<td>Date:</td>
-						<td>${new Date()}</td>
-					</tr>
-					<tr>
-						<td>Using ${memcachedServers.length} memcached Servers:</td>
-						<td>${memcachedServers}</td>
-
-					</tr>
-					<tr>
-						<td>Cached result seasons list:</td>
-						<td>${season.cached}</td>
-						<td>Response time seasons list:</td>
-						<td>${season.execTime}</td>
-					</tr>
-					<tr>
-						<td>Cached result people list:</td>
-						<td>${people.cached}</td>
-						<td>Response time people list:</td>
-						<td>${people.execTime}</td>
-					</tr>
-					<tr>
-						<td>Cached result people chart:</td>
-						<td>${chart.cached}</td>
-						<td>Response time people chart:</td>
-						<td>${chart.execTime}</td>
-					</tr>
+					<tr><td>Server:</td><td>${os.hostname()}</td><td>Date:</td><td>${new Date()}</td></tr>
+					<tr><td>Using ${memcachedServers.length} memcached Servers:</td><td>${memcachedServers}</td></tr>
+					<tr><td>Cached result seasons list:</td><td>${season.cached}</td><td>Response time seasons list:</td><td>${season.execTime}</td></tr>
+					<tr><td>Cached result people list:</td><td>${people.cached}</td><td>Response time people list:</td><td>${people.execTime}</td></tr>
+					<tr><td>Cached result people chart:</td><td>${chart.cached}</td><td>Response time people chart:</td><td>${chart.execTime}</td></tr>
 				</table>
 				</footer>
 				<script>
@@ -677,7 +624,6 @@ app.get("/", (req, res) => {
 						})
 					}
 				</script>
-			
 		`
 		sendResponse(res, html) 
 	})
@@ -701,16 +647,6 @@ app.get("/season/:season", (req, res) => {
 		.join("\n")
 
 		const html =`			
-				<header>
-					<div class="navbar-fixed">
-					<nav>
-						<div class="nav-wrapper brown darken-4">
-							<a href="#" class="brand-logo">GoT</a>
-						</div>
-					</nav>
-					</div>
-				</header>
-			
 				<main>
 				<div class="row" id="person">
 				<div class="col s2">
@@ -821,7 +757,6 @@ app.get("/season/:season", (req, res) => {
 					})
 				}
 				</script>
-			
 		`
 		sendResponse(res, html) 
 	})
@@ -840,31 +775,15 @@ app.get("/person/:person", (req, res) => {
 		const chart = values[1]
 		const personChart = chart.result
 
-		const html =`			
-				<header>
-					<div class="navbar-fixed">
-					<nav>
-						<div class="nav-wrapper brown darken-4">
-							<a href="#" class="brand-logo">GoT</a>
-						</div>
-					</nav>
-					</div>
-				</header>
-			
+		const html =`
 				<main>
 					<div class="row" id="staticData">
 						<div class="col s3">
 							<h4>${person}</h4>
 							<table>
 								<tbody>
-									<tr>
-										<td>Anzahl Sätze</td>
-										<td>${personData.countSentence}</td>
-									</tr>
-									<tr>
-										<td>Anzahl teilgenommener Staffeln</td>
-										<td>${personData.countSeasons}</td>
-									</tr>
+									<tr><td>Anzahl Sätze</td><td>${personData.countSentence}</td></tr>
+									<tr><td>Anzahl teilgenommener Staffeln</td><td>${personData.countSeasons}</td></tr>
 								</tbody>
 							</table>
 					  	</div>
@@ -873,7 +792,6 @@ app.get("/person/:person", (req, res) => {
 						<div id="heatmap"></div>
 						</div>
 					</div>
-			
 				</main>
 				<footer>
 				<hr>
@@ -895,18 +813,16 @@ app.get("/person/:person", (req, res) => {
 						chart.maskBullets = false;
 						
 						var xAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-						var yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-						
 						xAxis.dataFields.category = "sentiment";
-						yAxis.dataFields.category = "season";
-						
 						xAxis.renderer.grid.template.disabled = true;
 						xAxis.renderer.minGridDistance = 40;
 						
+						var yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+						yAxis.dataFields.category = "season";
 						yAxis.renderer.grid.template.disabled = true;
 						yAxis.renderer.inversed = true;
 						yAxis.renderer.minGridDistance = 30;
-						
+
 						var series = chart.series.push(new am4charts.ColumnSeries());
 						series.dataFields.categoryX = "sentiment";
 						series.dataFields.categoryY = "season";
@@ -963,7 +879,6 @@ app.get("/person/:person", (req, res) => {
 						chart.data = ${JSON.stringify(personChart)};
 					}
 				</script>
-			
 		`
 		sendResponse(res, html) 
 	})
