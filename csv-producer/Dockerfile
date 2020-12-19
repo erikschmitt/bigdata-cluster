@@ -39,6 +39,18 @@ RUN touch /tmp/empty.py && spark-submit --verbose \
 	--packages "${SPARK_KAFKA_DEPENDENCY}" \
 	/tmp/empty.py && rm -f /tmp/empty.py
 
+
+# Prepare the app's python dependencies
+ADD --chown=spark:spark kafka_requirements.txt /app/
+RUN pip install --no-cache-dir -t /app/kafka_dependencies -r kafka_requirements.txt
+
+# Zip all dependencies
+WORKDIR /app/kafka_dependencies
+RUN zip -r /app/kafka_dependencies.zip .
+
+WORKDIR /app
+RUN rm -rf /app/kafka_dependencies
+
 #------------------------------------
 # Copy the application code into the container
 
@@ -64,6 +76,7 @@ ENTRYPOINT spark-submit --verbose \
 	--master local \
 	--conf "spark.jars.ivy=${IVY_PACKAGE_DIR}" \
 	--packages "${SPARK_KAFKA_DEPENDENCY}" \
+	--py-files /app/kafka_dependencies.zip \
 	/app/csv2producer.py
 
 CMD [""]
