@@ -1,4 +1,4 @@
-FROM bitnami/spark:3.0.0
+FROM bitnami/spark:3.0.1
 LABEL maintainer="Manuel Klein, Erik Schmitt"
 WORKDIR /app
 
@@ -7,8 +7,9 @@ WORKDIR /app
 
 # Java Dependencies for Spark Kafka
 # These are obtained using Ivy later
-ENV SPARK_VERSION "3.0.0"
+ENV SPARK_VERSION "3.0.1"
 ENV SPARK_KAFKA_DEPENDENCY "org.apache.spark:spark-sql-kafka-0-10_2.12:${SPARK_VERSION}"
+ENV SPARK_NLP "com.johnsnowlabs.nlp:spark-nlp_2.11:2.6.5"
 ENV IVY_PACKAGE_DIR "/tmp/.ivy"
 
 #------------------------------------
@@ -36,19 +37,19 @@ WORKDIR /app
 # to benefit from Docker's build cache
 RUN touch /tmp/empty.py && spark-submit --verbose \
 	--conf "spark.jars.ivy=${IVY_PACKAGE_DIR}" \
-	--packages "${SPARK_KAFKA_DEPENDENCY}" \
+	--packages "${SPARK_NLP},${SPARK_KAFKA_DEPENDENCY}" \
 	/tmp/empty.py && rm -f /tmp/empty.py
 
 # Prepare the app's python dependencies
 ADD --chown=spark:spark requirements.txt /app/
-RUN pip install --no-cache-dir -t /app/dependencies -r requirements.txt
+RUN pip3 install --no-cache-dir -t /app/dependencies -r requirements.txt
 
 # Zip all dependencies
 WORKDIR /app/dependencies
 RUN zip -r /app/dependencies.zip .
 
 WORKDIR /app
-RUN rm -rf /app/dependencies
+#RUN rm -rf /app/dependencies
 
 #------------------------------------
 # Copy the application code into the container
@@ -71,7 +72,7 @@ COPY --chown=spark:spark *.py /app/
 ENTRYPOINT spark-submit --verbose \
 	--master local \
 	--conf "spark.jars.ivy=${IVY_PACKAGE_DIR}" \
-	--packages "${SPARK_KAFKA_DEPENDENCY}" \
+	--packages "${SPARK_NLP},${SPARK_KAFKA_DEPENDENCY}" \
 	--py-files /app/dependencies.zip \
 	/app/spark-app.py
 

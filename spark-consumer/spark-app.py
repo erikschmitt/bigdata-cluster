@@ -1,8 +1,18 @@
+##import numpy as np
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import IntegerType, StringType, StructType, TimestampType
 import mysqlx
+#from pyspark.ml.feature import StopWordsRemover 
+#from pyspark.ml import Pipeline
+#import string
+#from nltk.stem import WordNetLemmatizer
+#import afinn
+#from sparknlp.base import *
+#from sparknlp.annotator import *
+#from sparknlp.pretrained import PretrainedPipeline
 #import sparknlp
+#from sparknlp.annotator import SentimentDetector
 
 dbOptions = {"host": "my-app-mysql-service", 'port': 33060, "user": "root", "password": "mysecretpw"}
 dbSchema = 'popular'
@@ -81,7 +91,7 @@ def saveToDatabase(batchDataframe, batchId):
     def save_to_db(iterator):
         # Connect to database and use schema
         session = mysqlx.get_session(dbOptions)
-        session.sql("USE sentence").execute()
+        session.sql("USE popular").execute()
 
         for row in iterator:
             # Run upsert (insert or update existing)
@@ -97,11 +107,11 @@ def saveToDatabase(batchDataframe, batchId):
 # Example Part 7
 
 
-dbInsertStream = sentenceMessages.writeStream \
-    .trigger(processingTime="30 seconds") \
-    .outputMode("update") \
-    .foreachBatch(saveToDatabase) \
-    .start()
+#dbInsertStream = sentenceMessages.writeStream \
+#    .trigger(processingTime="30 seconds") \
+#    .outputMode("update") \
+#    .foreachBatch(saveToDatabase) \
+#    .start()
 
 # Wait for termination
 spark.streams.awaitAnyTermination()
