@@ -31,9 +31,14 @@
 #stackedbars {
     width: 100%;
     height: 500px;
-  }
+}
 
-  #hybridpiebar {
+#sentimentbar {
+  width: 100%;
+  height: 500px;
+}
+
+#hybridpiebar {
     width: 100%;
     height: 400px;
-  }
+}
