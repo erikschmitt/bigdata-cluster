@@ -5,7 +5,7 @@ metadata:
 spec:
   kafka:
     version: 2.5.0
-    replicas: 1
+    replicas: 2
     listeners:
       plain: {}
       tls: {}
@@ -20,7 +20,7 @@ spec:
         - id: 0
           type: ephemeral
   zookeeper:
-    replicas: 1
+    replicas: 2
     storage:
       type: ephemeral
   entityOperator:

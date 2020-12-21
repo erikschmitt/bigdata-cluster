@@ -1,91 +1,69 @@
 from time import sleep
-from json import dumps
+import json
 from kafka import KafkaProducer
 from random import random
 import csv
 import os
 import sys
 
-dbOptions = {"host": "my-app-mysql-service", 'port': 33060, "user": "root", "password": "mysecretpw"}
-kafka_broker = "my-cluster-kafka-bootstrap:9092"
+kafka_broker = 'my-cluster-kafka-bootstrap:9092'
 kafka_topic = "got-data"
 counter = 0
 
-# pip install kafka-python --> Where to write to?
+kp = KafkaProducer(
+    bootstrap_servers=kafka_broker,
+    value_serializer=lambda x: 
+    json.dumps(x).encode('utf-8'))
 
-def randomClientId():
-    return "tracker" + str(round(random() * 100000))
+# def randomClientId():
+#     return "tracker" + str(round(random() * 100000))
 
 # Define producer with broker, client_id and value_serializer
 # Added Exception-Handling
 # Maybe add batching????
 
-kp = KafkaProducer(bootstrap_servers = [kafka_broker])
-kp.send('topic', b'Test')
-
-while True:
-    counter +=1
-    print(f"Sending message: {counter}")
-    future = kp.send("test", str(counter).encode())
-    result = future.get(timeout=5)
-    print(f"Result: {result}")
-    sleep(2)
-
-
-
-
-
 # def getProducer():
-#     kafka_producer = KafkaProducer(bootstrap_servers = [kafka_broker],
+#     kafka_producer = KafkaProducer(bootstrap_servers = kafka_broker,
 #                                   client_id = randomClientId(),
 #                                   value_serializer = lambda x :
 #                                   dumps(x).encode("utf-8"),
-#                                   retries=10,
 #                                   api_version=(0, 10, 1))
 #     return kafka_producer
 
-# # def getProducers():
-# #     kafka_producer = None
-# #     try:
-# #         kafka_producer = KafkaProducer(bootstrap_servers=kafka_broker,
-# #                                        client_id = randomClientId(),
-# #                                        value_serializer = lambda x : dumps(x).encode("utf-8"),
-# #                                        retries=10,
-# #                                        api_version=(0, 10, 1))
-# #     except Exception as ex:
-# #         console.log("Kafka-Connection failed")
-# #         console.log(str(ex))
-# #     finally:
-# #         return kafka_producer
-
-# def send_message(producer, data):
-#     while not producer.bootstrap_connected():
-#         sleep(1)
-
-#     producer.send(kafka_topic, value=data)
-#     # console.log("Sent to producer")
-#     # except Exception as ex:
-#     #     console.log("Failed to send to producer")
-#     #     print(str(ex))
+# def getProducers():
+#     kafka_producer = None
+#     try:
+#         kafka_producer = KafkaProducer(bootstrap_servers=kafka_broker,
+#                                        client_id = randomClientId(),
+#                                        value_serializer = lambda x : dumps(x).encode("utf-8"),
+#                                        retries=10,
+#                                        api_version=(0, 10, 1))
+#     except Exception as ex:
+#         console.log("Kafka-Connection failed")
+#         console.log(str(ex))
+#     finally:
+#         return kafka_producer
     
-# # read in csv-File
+# read in csv-File
 
-# with open(os.path.join(sys.path[0], "test.csv"), "r", encoding="utf8") as file:
-#     producer = getProducer()
-#     for line in file:
-#         if counter > 0:
-#             lines = line.split(";")
-#             data = {'id' : lines[0],
-#                     'person' : lines[4],
-#                     'n_serie' : lines[5],
-#                     'n_season' : lines[6],
-#                     'sentence' : lines[3]}
-#             send_message(producer, data)
+with open(os.path.join(sys.path[0], "got_scripts_breakdown.csv"), "r", encoding="utf8") as file:
+    for line in file:
+        if counter > 0:
+            lines = line.split(";")
+            data = {'id' : lines[0],
+                    'person' : lines[4],
+                    'n_serie' : lines[5],
+                    'n_season' : lines[6],
+                    'sentence' : lines[3]}
+            data_json = json.dumps(data)
+            print(f"Sending message: {data_json}")
+            future = kp.send(kafka_topic, data_json.encode())
+            result = future.get(timeout=5)
+            print(f"Result: {result}")
+            if ((counter > 1) & (counter % 100 == 0)):
+                sleep(5)
 
-#             if ((counter > 1) & (counter % 20 == 0)):
-#                 sleep(5)
-
-#         counter += 1
+        counter += 1
     
-# #    if producer is not None:
-# #        producer.close()
+if kp is not None:
+    kp.close()

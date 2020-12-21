@@ -198,7 +198,7 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               value: "mysecretpw"
             - name: MYSQL_DATABASE
-              value: "popular"
+              value: "sentence"
           ports:
             - containerPort: 33060
           # Mount the volume

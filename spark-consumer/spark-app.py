@@ -3,6 +3,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import IntegerType, StringType, StructType, TimestampType
 import mysqlx
+import random
 #from pyspark.ml.feature import StopWordsRemover 
 #from pyspark.ml import Pipeline
 #import string
@@ -36,13 +37,14 @@ kafkaMessages = spark \
     .option("startingOffsets", "earliest") \
     .load()
 
-# Define schema of tracking data
-trackingMessageSchema = StructType() \
+# Define schema of data
+sentenceMessageSchema = StructType() \
     .add("id", IntegerType()) \
     .add("person", StringType()) \
     .add("n_serie", IntegerType()) \
     .add("n_season", IntegerType()) \
-    .add("sentence", StringType())
+    .add("sentence", StringType()) \
+#    .add("sentiment", StringType())
 
 # Example Part 3
 # Convert value: binary -> JSON -> fields + parsed timestamp
@@ -50,7 +52,7 @@ sentenceMessages = kafkaMessages.select(
     # Extract 'value' from Kafka message (i.e., the tracking data)
     from_json(
         column("value").cast("string"),
-        trackingMessageSchema
+        sentenceMessageSchema
     ).alias("json")
 ).select(
     # Select all JSON fields
@@ -85,19 +87,39 @@ sentenceMessages = kafkaMessages.select(
 
 # Example Part 6
 
+def sentimentGen():
+    return round(random.uniform(-2,2), 2)
+
 
 def saveToDatabase(batchDataframe, batchId):
     # Define function to save a dataframe to mysql
     def save_to_db(iterator):
         # Connect to database and use schema
         session = mysqlx.get_session(dbOptions)
-        session.sql("USE popular").execute()
+        session.sql("USE sentence").execute()
 
         for row in iterator:
             # Run upsert (insert or update existing)
+            sentiment_value = str(sentimentGen())
+            sentiment_group = ""
+
+            if -2 <= sentiment_value < -1:
+                sentiment_group = "sentiment_group_n2"
+            elif -1 <= sentiment_value < 0:
+                sentiment_group = "sentiment_group_n1"
+            elif 0 <= sentiment_value < 1:
+                sentiment_group = "sentiment_group_p1"
+            elif 1 <= sentiment_value < 2:
+                sentiment_group = "sentiment_group_p2"
+
             sql = session.sql("INSERT INTO sentence "
                               "(id, person, n_serie, n_season, sentence, sentiment) VALUES (?, ?, ?, ?, ?, ?) ")
-            sql.bind(row.id, row.person, row.n_serie, row.n_season, row.sentence, "4").execute()
+            sql.bind(row.id, row.person, row.n_serie, row.n_season, row.sentence, sentiment_value).execute()
+
+            sql2 = session.sql("UPDATE sentiment_counts "
+                               "SET ? = ? + 1 "
+                               "WHERE person = ? AND n_season = ?")
+            sql2.bind(sentiment_group, sentiment_group, row.person, row.n_season).execute()
 
         session.close()
 
@@ -107,11 +129,11 @@ def saveToDatabase(batchDataframe, batchId):
 # Example Part 7
 
 
-#dbInsertStream = sentenceMessages.writeStream \
-#    .trigger(processingTime="30 seconds") \
-#    .outputMode("update") \
-#    .foreachBatch(saveToDatabase) \
-#    .start()
+dbInsertStream = sentenceMessages.writeStream \
+   .trigger(processingTime="30 seconds") \
+   .outputMode("update") \
+   .foreachBatch(saveToDatabase) \
+   .start()
 
 # Wait for termination
 spark.streams.awaitAnyTermination()
