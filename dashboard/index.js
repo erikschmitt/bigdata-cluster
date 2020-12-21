@@ -182,6 +182,41 @@ async function getAllSeasons() {
 }
 
 /**
+ * Load chart data of all seasons
+ */
+async function getChartAllSeasons() {
+	let timeStart = process.hrtime()
+	const query = "Select * FROM allSeasonsChart ORDER BY n_season ASC"
+	const key = 'chartAllSeasons'
+	let cachedata = await getFromCache(key)
+
+	if (cachedata) {
+		console.log(`Cache hit for key=${key}, ${Object.keys(cachedata).length} seasons found`)
+		return { result: cachedata, cached: true, execTime: timeEnd(timeStart) }
+	} else {
+		console.log(`Cache miss for key=${key}, querying database`)
+
+		let data = (await executeQuery(query))
+						.fetchAll()
+						.map(row => ({ category : "Staffel " + row[0],
+							negative1: row[1]*(-1),
+							negative2: row[2]*(-1),
+							positive1: row[3],
+							positive2: row[4]  }))
+		
+		if (data) {
+			console.log(`Got ${Object.keys(data).length} for ${key} => now store in cache`)
+			if (memcached)
+				await memcached.set(key, data, cacheTimeSecs);
+
+			return { result: data, cached: false, execTime: timeEnd(timeStart) }
+		} else {
+			throw "No seasons found"
+		}
+	}
+}
+
+/**
  * Load list of all people
  */
 async function getAllPeople() {
@@ -216,7 +251,7 @@ async function getAllPeople() {
  */
 async function getChartAllPeople() {
 	let timeStart = process.hrtime()
-	const query = "SELECT * FROM allPeople ORDER BY person DESC"
+	const query = "Select * FROM allPeopleChart ORDER BY person ASC"
 	const key = 'chartAllPeople'
 	let cachedata = await getFromCache(key)
 
@@ -226,21 +261,14 @@ async function getChartAllPeople() {
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
-		let people = (await executeQuery(query))
+		let data = (await executeQuery(query))
 						.fetchAll()
-						.map(row => ({ name : row[0] }))
-
-		let data = people
-		.map(p =>  {
-			return {
-				category: p.name,
-				negative1: (Math.floor((Math.random() * 4500) + 1))*(-1),
-				negative2: (Math.floor((Math.random() * 4500) + 1))*(-1),
-				positive1: (Math.floor((Math.random() * 3000) + 1)),
-				positive2: (Math.floor((Math.random() * 3000) + 1))
-			}
-		})
-
+						.map(row => ({ category : row[0],
+							negative1: row[1]*(-1),
+							negative2: row[2]*(-1),
+							positive1: row[3],
+							positive2: row[4] }))
+		
 		if (data) {
 			console.log(`Got ${Object.keys(data).length} for ${key} => now store in cache`)
 			if (memcached)
@@ -291,7 +319,7 @@ async function getPeopleOfSeason(season) {
  */
 async function getSentimentOfSeason(season) {
 	let timeStart = process.hrtime()
-	const query = "SELECT DISTINCT person FROM sentence where n_season = ?"
+	const query = "SELECT person, SUM(sentiment_group_n2) AS n2, SUM(sentiment_group_n1) AS n1, SUM(sentiment_group_p1) AS p1, SUM(sentiment_group_p2) AS p2 FROM sentiment_counts WHERE n_season = ? GROUP BY person;"
 	const key = 'sentimentOfSeason_' + season
 	let cachedata = await getFromCache(key)
 
@@ -301,20 +329,13 @@ async function getSentimentOfSeason(season) {
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
-		let sentiment = (await executeQuery(query, [season]))
+		let data = (await executeQuery(query, [season]))
 							.fetchAll()
-							.map(row => ({ name : row[0] }))
-
-		let data = sentiment
-		.map(p =>  {
-			return {
-				category: p.name,
-				negative1: (Math.floor((Math.random() * 4500) + 1))*(-1),
-				negative2: (Math.floor((Math.random() * 4500) + 1))*(-1),
-				positive1: (Math.floor((Math.random() * 3000) + 1)),
-				positive2: (Math.floor((Math.random() * 3000) + 1))
-			}
-		})
+							.map(row => ({ category : row[0],
+								negative1: row[1]*(-1),
+								negative2: row[2]*(-1),
+								positive1: row[3],
+								positive2: row[4]  }))
 		
 		if (data) {
 			console.log(`Got ${Object.keys(data).length} sentiment for season ${season} in database => now store in cache`)
@@ -365,7 +386,7 @@ async function getPerson(person) {
  */
 async function getChartPerson(person) {
 	let timeStart = process.hrtime()
-	const query = "SELECT count(sentence) as CountSentence, count(DISTINCT(n_season)) AS CountSeasons FROM sentence where person like ?"
+	const query = "SELECT n_season, SUM(sentiment_group_n2) AS n2, SUM(sentiment_group_n1) AS n1, SUM(sentiment_group_p1) AS p1, SUM(sentiment_group_p2) AS p2 FROM sentiment_counts WHERE person like ? GROUP BY n_season;"
 	const key = 'chartPerson_' + person.replace(/ /gi, "_");
 	let cachedata = await getFromCache(key)
 
@@ -375,101 +396,14 @@ async function getChartPerson(person) {
 	} else {
 		console.log(`Cache miss for key=${key}, querying database`)
 
-		//let data = (await executeQuery(query, [person])).fetchOne()
+		let data = (await executeQuery(query, [person]))
+							.fetchAll()
+							.map(row => ({ category : "Staffel "+row[0],
+								negative1: row[1]*(-1),
+								negative2: row[2]*(-1),
+								positive1: row[3],
+								positive2: row[4]  }))
 
-		let data = [
-			{
-				"season": "season 1",
-				"sentiment": "-5",
-				"value": 2990
-			},
-			{
-				"season": "season 2",
-				"sentiment": "-5",
-				"value": 2520
-			},
-			{
-				"season": "season 3",
-				"sentiment": "-5",
-				"value": 2334
-			},
-			{
-				"season": "season 4",
-				"sentiment": "-5",
-				"value": 2230
-			},
-			{
-				"season": "season 5",
-				"sentiment": "-5",
-				"value": 2325
-			},
-			{
-				"season": "season 6",
-				"sentiment": "-5",
-				"value": 2019
-			},
-		
-			{
-				"season": "season 1",
-				"sentiment": "0",
-				"value": 3346
-			},
-			{
-				"season": "season 2",
-				"sentiment": "0",
-				"value": 2725
-			},
-			{
-				"season": "season 3",
-				"sentiment": "0",
-				"value": 3052
-			},
-			{
-				"season": "season 4",
-				"sentiment": "0",
-				"value": 3876
-			},
-			{
-				"season": "season 5",
-				"sentiment": "0",
-				"value": 4453
-			},
-			{
-				"season": "season 6",
-				"sentiment": "0",
-				"value": 3972
-			},
-			{
-				"season": "season 1",
-				"sentiment": "+5",
-				"value": 4468
-			},
-			{
-				"season": "season 2",
-				"sentiment": "+5",
-				"value": 3306
-			},
-			{
-				"season": "season 3",
-				"sentiment": "+5",
-				"value": 3906
-			},
-			{
-				"season": "season 4",
-				"sentiment": "+5",
-				"value": 4413
-			},
-			{
-				"season": "season 5",
-				"sentiment": "+5",
-				"value": 4726
-			},
-			{
-				"season": "season 6",
-				"sentiment": "+5",
-				"value": 4584
-			}];
-		
 		if (data) {
 			console.log(`Got ${Object.keys(data).length} sentiment for ${person} in database => now store in cache`)
 			if (memcached)
@@ -490,11 +424,13 @@ async function getChartPerson(person) {
 // Return HTML for start page
 app.get("/", (req, res) => {
 
-	Promise.all([getAllSeasons(), getAllPeople(), getChartAllPeople()]).then(values => {
+	Promise.all([getAllSeasons(), getAllPeople(), getChartAllPeople(), getChartAllSeasons()]).then(values => {
 		const season = values[0]
 		const people = values[1]
 		const chart = values[2]
+		const chart2 = values[3]
 		const peopleChart = chart.result
+		const seasonChart = chart2.result
 
 		const seasonsHtml = season.result
 			.map(seas => `<li class="collection-item"> <a href='season/${seas.season}' target='_blank'>Staffel ${seas.season}</a></li>`)
@@ -515,8 +451,8 @@ app.get("/", (req, res) => {
 							</ul>
 						</div>
 						<div class="col s10">
-							<h1>Anzahl Sätze von Personen in Staffel X mit Sentimentgruppen</h1>
-							<div id="hybridpiebar"></div>
+							<h1>Anzahl Sätze je Staffel mit Sentimentgruppen</h1>
+							<div id="sentimentbar"></div>
 						</div>
 					</div>
 					<hr>
@@ -548,6 +484,81 @@ app.get("/", (req, res) => {
 				<script>
 					// Create chart instance
 					function createChart(){
+						var chart = am4core.create("sentimentbar", am4charts.XYChart);
+
+						// Title
+						var title1 = chart.titles.push(new am4core.Label());
+						title1.text = "Anzahl Sätze von Personen gruppiert in Sentimentgruppen";
+						title1.fontSize = 25;
+						title1.marginBottom = 15;
+
+						// Add data
+						chart.data = ${JSON.stringify(seasonChart)};
+
+						// Create axes
+						var categoryAxis1 = chart.yAxes.push(new am4charts.CategoryAxis());
+						categoryAxis1.dataFields.category = "category";
+						categoryAxis1.renderer.grid.template.location = 0;
+						categoryAxis1.renderer.inversed = true;
+						categoryAxis1.renderer.minGridDistance = 20;
+						categoryAxis1.renderer.axisFills.template.disabled = false;
+						categoryAxis1.renderer.axisFills.template.fillOpacity = 0.05;
+
+						var valueAxis1 = chart.xAxes.push(new am4charts.ValueAxis());
+						valueAxis1.min = -30000;
+						valueAxis1.max = 30000;
+						valueAxis1.renderer.minGridDistance = 50;
+						valueAxis1.renderer.ticks.template.length = 5;
+						valueAxis1.renderer.ticks.template.disabled = false;
+						valueAxis1.renderer.ticks.template.strokeOpacity = 0.4;
+						valueAxis1.renderer.labels.template.adapter.add("text", function(text) {
+						return text;
+						})
+
+						// Legend
+						chart.legend = new am4charts.Legend();
+						chart.legend.position = "right";
+
+						// Use only absolute numbers
+						chart.numberFormatter.numberFormat = "#.#s";
+
+						// Create series
+						function createSeries1(field, name, color) {
+						var series1 = chart.series.push(new am4charts.ColumnSeries());
+						series1.dataFields.valueX = field;
+						series1.dataFields.categoryY = "category";
+						series1.stacked = true;
+						series1.name = name;
+						series1.stroke = color;
+						series1.fill = color;
+						
+						var label1 = series1.bullets.push(new am4charts.LabelBullet);
+						label1.label.text = "{valueX}";
+						label1.label.fill = am4core.color("#fff");
+						label1.label.strokeWidth = 0;
+						label1.label.truncate = false;
+						label1.label.hideOversized = true;
+						label1.locationX = 0.5;
+						return series1;
+						}
+
+						var interfaceColors1 = new am4core.InterfaceColorSet();
+						var positiveColor1 = interfaceColors1.getFor("positive");
+						var negativeColor1 = interfaceColors1.getFor("negative");
+
+						createSeries1("negative2", "eher negativ", negativeColor1.lighten(0.5));
+						createSeries1("negative1", "negativ", negativeColor1);
+						createSeries1("positive1", "eher positiv", positiveColor1.lighten(0.5));
+						createSeries1("positive2", "positiv", positiveColor1);
+
+						chart.legend.events.on("layoutvalidated", function(event){
+						chart.legend.itemContainers.each((container)=>{
+							if(container.dataItem.dataContext.name == "Never"){
+							container.toBack();
+							}
+						})
+						})
+
 						var chart2 = am4core.create("stackedbars", am4charts.XYChart);
 
 						// Title
@@ -656,9 +667,6 @@ app.get("/season/:season", (req, res) => {
 					</ul>
 				</div>
 				<div class="col s10">
-					<!--<h1>Anzahl Sätze von John je Staffel nach Sentimentgruppen</h1>
-					<div id="heatmap"></div>-->
-	
 					<h1>Anzahl Sätze von Personen gruppiert in Sentimentgruppen</h1>
 					<div id="stackedbars"></div>
 				</div>
@@ -789,7 +797,7 @@ app.get("/person/:person", (req, res) => {
 					  	</div>
 						<div class="col s9">
 						<h1>Anzahl Sätze von ${person} je Staffel nach Sentimentgruppen</h1>
-						<div id="heatmap"></div>
+						<div id="stackedbars"></div>
 						</div>
 					</div>
 				</main>
@@ -809,74 +817,80 @@ app.get("/person/:person", (req, res) => {
 				<script>
 					// heatmap
 					function createChart(){
-						var chart = am4core.create("heatmap", am4charts.XYChart);
-						chart.maskBullets = false;
-						
-						var xAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-						xAxis.dataFields.category = "sentiment";
-						xAxis.renderer.grid.template.disabled = true;
-						xAxis.renderer.minGridDistance = 40;
-						
-						var yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-						yAxis.dataFields.category = "season";
-						yAxis.renderer.grid.template.disabled = true;
-						yAxis.renderer.inversed = true;
-						yAxis.renderer.minGridDistance = 30;
-
-						var series = chart.series.push(new am4charts.ColumnSeries());
-						series.dataFields.categoryX = "sentiment";
-						series.dataFields.categoryY = "season";
-						series.dataFields.value = "value";
-						series.sequencedInterpolation = true;
-						series.defaultState.transitionDuration = 3000;
-						
-						var bgColor = new am4core.InterfaceColorSet().getFor("background");
-						
-						var columnTemplate = series.columns.template;
-						columnTemplate.strokeWidth = 1;
-						columnTemplate.strokeOpacity = 0.2;
-						columnTemplate.stroke = bgColor;
-						columnTemplate.tooltipText = "{sentiment}, {season}: {value.workingValue.formatNumber('#.')}";
-						columnTemplate.width = am4core.percent(100);
-						columnTemplate.height = am4core.percent(100);
-						
-						series.heatRules.push({
-						target: columnTemplate,
-						property: "fill",
-						min: am4core.color(bgColor),
-						max: chart.colors.getIndex(0)
-						});
-						
-						// heat legend
-						var heatLegend = chart.bottomAxesContainer.createChild(am4charts.HeatLegend);
-						heatLegend.width = am4core.percent(100);
-						heatLegend.series = series;
-						heatLegend.valueAxis.renderer.labels.template.fontSize = 9;
-						heatLegend.valueAxis.renderer.minGridDistance = 30;
-						
-						// heat legend behavior
-						series.columns.template.events.on("over", function(event) {
-						handleHover(event.target);
+						var chart2 = am4core.create("stackedbars", am4charts.XYChart);
+	
+						// Title
+						var title = chart2.titles.push(new am4core.Label());
+						title.text = "Anzahl Sätze von Personen gruppiert in Sentimentgruppen";
+						title.fontSize = 25;
+						title.marginBottom = 15;
+	
+						// Add data
+						chart2.data = ${JSON.stringify(personChart)};
+	
+						// Create axes
+						var categoryAxis = chart2.yAxes.push(new am4charts.CategoryAxis());
+						categoryAxis.dataFields.category = "category";
+						categoryAxis.renderer.grid.template.location = 0;
+						categoryAxis.renderer.inversed = true;
+						categoryAxis.renderer.minGridDistance = 20;
+						categoryAxis.renderer.axisFills.template.disabled = false;
+						categoryAxis.renderer.axisFills.template.fillOpacity = 0.05;
+	
+						var valueAxis = chart2.xAxes.push(new am4charts.ValueAxis());
+						valueAxis.min = -9000;
+						valueAxis.max = 7000;
+						valueAxis.renderer.minGridDistance = 50;
+						valueAxis.renderer.ticks.template.length = 5;
+						valueAxis.renderer.ticks.template.disabled = false;
+						valueAxis.renderer.ticks.template.strokeOpacity = 0.4;
+						valueAxis.renderer.labels.template.adapter.add("text", function(text) {
+						return text;
 						})
+	
+						// Legend
+						chart2.legend = new am4charts.Legend();
+						chart2.legend.position = "right";
+	
+						// Use only absolute numbers
+						chart2.numberFormatter.numberFormat = "#.#s";
+	
+						// Create series
+						function createSeries(field, name, color) {
+						var series = chart2.series.push(new am4charts.ColumnSeries());
+						series.dataFields.valueX = field;
+						series.dataFields.categoryY = "category";
+						series.stacked = true;
+						series.name = name;
+						series.stroke = color;
+						series.fill = color;
 						
-						series.columns.template.events.on("hit", function(event) {
-						handleHover(event.target);
+						var label = series.bullets.push(new am4charts.LabelBullet);
+						label.label.text = "{valueX}";
+						label.label.fill = am4core.color("#fff");
+						label.label.strokeWidth = 0;
+						label.label.truncate = false;
+						label.label.hideOversized = true;
+						label.locationX = 0.5;
+						return series;
+						}
+	
+						var interfaceColors = new am4core.InterfaceColorSet();
+						var positiveColor = interfaceColors.getFor("positive");
+						var negativeColor = interfaceColors.getFor("negative");
+	
+						createSeries("negative2", "eher negativ", negativeColor.lighten(0.5));
+						createSeries("negative1", "negativ", negativeColor);
+						createSeries("positive1", "eher positiv", positiveColor.lighten(0.5));
+						createSeries("positive2", "positiv", positiveColor);
+	
+						chart2.legend.events.on("layoutvalidated", function(event){
+						chart2.legend.itemContainers.each((container)=>{
+							if(container.dataItem.dataContext.name == "Never"){
+							container.toBack();
+							}
 						})
-						
-						function handleHover(column) {
-						if (!isNaN(column.dataItem.value)) {
-							heatLegend.valueAxis.showTooltipAt(column.dataItem.value)
-						}
-						else {
-							heatLegend.valueAxis.hideTooltip();
-						}
-						}
-						
-						series.columns.template.events.on("out", function(event) {
-						heatLegend.valueAxis.hideTooltip();
 						})
-						
-						chart.data = ${JSON.stringify(personChart)};
 					}
 				</script>
 		`
