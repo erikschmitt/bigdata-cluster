@@ -26,7 +26,7 @@ data:
     );
 
     DELIMITER //
-      CREATE PROCEDURE add_count(
+      CREATE PROCEDURE add_count_all(
         IN per VARCHAR(50), 
         IN season tinyint, 
         IN sen_gp_n2 BIGINT,
@@ -47,6 +47,28 @@ data:
           sentiment_group_n1 = sen_gp_n1,
           sentiment_group_p1 = sen_gp_p1,
           sentiment_group_p2 = sen_gp_p2;
+      END //
+    DELIMITER ;
+
+    DELIMITER //
+      CREATE PROCEDURE add_count(
+        IN per VARCHAR(50), 
+        IN season tinyint,
+        IN sent_gr VARCHAR(50))
+      BEGIN
+
+        SET @iPer = per;
+        SET @seas = season;
+        SET @sent = sent_gr;
+        SET @query = CONCAT('INSERT INTO sentiment_counts (
+              person,n_season,',@sent,')
+        VALUES ("',@iPer,'","',@seas,'",1 )
+        ON DUPLICATE KEY UPDATE
+          ',@sent,' = if(',@sent,' IS NULL,1,',@sent,'+1)');
+
+        PREPARE QUERY FROM @query;
+        EXECUTE QUERY;
+
       END //
     DELIMITER ;
 
@@ -130,10 +152,17 @@ data:
     INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES ('bran',2,1500,2500,3000,500);
     INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES ('ned',2,2545,1254,2356,500);
     INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES ('jon',2,1243,1232,2500,500);
-    CALL add_count('cassel',2,800,200,250,500);
-    CALL add_count('theon',2,3500,2500,1500,500);
-    CALL add_count('catelyn',2,1452,2145,2541,500);
-
+    CALL add_count_all('cassel',2,800,200,250,500);
+    CALL add_count_all('theon',2,3500,2500,1500,500);
+    CALL add_count_all('catelyn',2,1452,2145,2541,500);
+    CALL add_count('will',1,'sentiment_group_n2');
+    CALL add_count('will',1,'sentiment_group_n1');
+    CALL add_count('will',1,'sentiment_group_n2');
+    CALL add_count('will',1,'sentiment_group_p1');
+    CALL add_count('will',1,'sentiment_group_p2');
+    CALL add_count('will',1,'sentiment_group_p1');
+    CALL add_count('will',1,'sentiment_group_n2');
+    CALL add_count('will',1,'sentiment_group_p2');
 
 ---
 apiVersion: apps/v1
