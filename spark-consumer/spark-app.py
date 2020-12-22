@@ -1,23 +1,13 @@
-##import numpy as np
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import IntegerType, StringType, StructType, TimestampType
 import mysqlx
 import random
 import math
-#from pyspark.ml.feature import StopWordsRemover 
-#from pyspark.ml import Pipeline
-#import string
-#from nltk.stem import WordNetLemmatizer
-#import afinn
-#from sparknlp.base import *
-#from sparknlp.annotator import *
-#from sparknlp.pretrained import PretrainedPipeline
-#import sparknlp
-#from sparknlp.annotator import SentimentDetector
+import json
 
 dbOptions = {"host": "my-app-mysql-service", 'port': 33060, "user": "root", "password": "mysecretpw"}
-dbSchema = 'popular'
+dbSchema = 'sentence'
 
 # Example Part 1
 # Create a spark session
