@@ -119,10 +119,8 @@ def saveToDatabase(batchDataframe, batchId):
                               "(id, person, n_serie, n_season, sentence, sentiment) VALUES (?, ?, ?, ?, ?, ?) ")
             sql.bind(row.id, row.person, row.n_serie, row.n_season, row.sentence, sentiment_value).execute()
 
-            sql2 = session.sql("UPDATE sentiment_counts "
-                               "SET ? = ? + 1 "
-                               "WHERE person = ? AND n_season = ?")
-            sql2.bind(sentiment_group, sentiment_group, row.person, row.n_season).execute()
+            sql2 = session.sql("CALL add_count(?, ?, ?);")
+            sql2.bind(row.person, row.n_season, sentiment_group).execute()
 
         session.close()
 
