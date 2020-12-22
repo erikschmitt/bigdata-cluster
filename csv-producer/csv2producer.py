@@ -15,6 +15,9 @@ kp = KafkaProducer(
     value_serializer=lambda x: 
     json.dumps(x).encode('utf-8'))
 
+if kp.bootstrap_connected():
+    print("Kafka connected")
+
 # def randomClientId():
 #     return "tracker" + str(round(random() * 100000))
 
@@ -57,11 +60,12 @@ with open(os.path.join(sys.path[0], "got_scripts_breakdown.csv"), "r", encoding=
                     'sentence' : lines[3]}
             data_json = json.dumps(data)
             print(f"Sending message: {data_json}")
-            future = kp.send(kafka_topic, data_json.encode())
+            future = kp.send(kafka_topic, data_json)
             result = future.get(timeout=5)
             print(f"Result: {result}")
             if ((counter > 1) & (counter % 100 == 0)):
                 sleep(5)
+            kp.flush()
 
         counter += 1
     

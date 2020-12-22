@@ -4,6 +4,7 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import IntegerType, StringType, StructType, TimestampType
 import mysqlx
 import random
+import math
 #from pyspark.ml.feature import StopWordsRemover 
 #from pyspark.ml import Pipeline
 #import string
@@ -88,7 +89,9 @@ sentenceMessages = kafkaMessages.select(
 # Example Part 6
 
 def sentimentGen():
-    return round(random.uniform(-2,2), 2)
+    random_num = random.uniform(-2, 2)
+    rnd_random_num = int(random_num * 100) / 1000
+    return rnd_random_num
 
 
 def saveToDatabase(batchDataframe, batchId):
@@ -100,7 +103,7 @@ def saveToDatabase(batchDataframe, batchId):
 
         for row in iterator:
             # Run upsert (insert or update existing)
-            sentiment_value = str(sentimentGen())
+            sentiment_value = sentimentGen()
             sentiment_group = ""
 
             if -2 <= sentiment_value < -1:
