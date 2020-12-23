@@ -10,6 +10,8 @@ Therefore the different microservices run in separate Docker-Containers and Pods
 
 The deployment is built in the skaffold.yaml
 
+![Dashboard](https://github.com/erikschmitt/bigdata-cluster/blob/main/miscellaneous/screenshot.png)
+
 ## Prerequisites
 
 ### Software to install, for example with minikube on Ubuntu
