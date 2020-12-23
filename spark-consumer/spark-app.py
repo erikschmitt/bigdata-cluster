@@ -28,6 +28,9 @@ kafkaMessages = spark \
     .option("startingOffsets", "earliest") \
     .load()
 
+print("###kafkaMessages.isStreaming " + str(kafkaMessages.isStreaming))
+#pprint.pprint(kafkaMessages.value.value)
+
 # Define schema of data
 sentenceMessageSchema = StructType() \
     .add("id", IntegerType()) \
@@ -69,13 +72,13 @@ sentenceMessages = kafkaMessages.select(
 
 # Example Part 5
 # Start running the query; print running counts to the console
-# consoleDump = popular \
-#     .writeStream \
-#     .trigger(processingTime=slidingDuration) \
-#     .outputMode("update") \
-#     .format("console") \
-#     .option("truncate", "false") \
-#     .start()
+consoleDump = sentenceMessages \
+    .writeStream \
+    .trigger(processingTime='1 minute') \
+    .outputMode("append") \
+    .format("console") \
+    .option("truncate", "false") \
+    .start()
 
 # # Example Part 6
 
@@ -93,16 +96,22 @@ def saveToDatabase(batchDataframe, batchId):
         session.sql("USE sentence").execute()
 
         for row in iterator:
-            print(row)
-            print(row.id)
-            print(row.person)
-            print(row.n_serie)
-            print(batchDataframe)
-            print(batchId)
             # Run upsert (insert or update existing)
             sentiment_value = sentimentGen()
             print(sentiment_value)
             sentiment_group = ""
+
+            print(type(row))
+            print(type(row.id))
+            print(row.id)
+            print(type(row.person))
+            print(row.person)
+            print(type(row.n_serie))
+            print(row.n_serie)
+            print(type(row.n_season))
+            print(row.n_season)
+            print(type(row.sentence))
+            print((row.sentence).encode('utf-8'))
 
             if -2 <= sentiment_value < -1:
                 sentiment_group = "sentiment_group_n2"
@@ -113,12 +122,22 @@ def saveToDatabase(batchDataframe, batchId):
             elif 1 <= sentiment_value < 2:
                 sentiment_group = "sentiment_group_p2"
 
-            sql = session.sql("INSERT INTO sentence "
-                              "(id, person, n_serie, n_season, sentence, sentiment) VALUES (?, ?, ?, ?, ?, ?) ")
-            sql.bind(row.id, row.person, row.n_serie, row.n_season, row.sentence, sentiment_value).execute()
+            print("sentiment_group " + sentiment_group)
+            print("sentiment_value " + str(sentiment_value))
 
-            sql2 = session.sql("CALL add_count(?, ?, ?);")
-            sql2.bind(row.person, row.n_season, sentiment_group).execute()
+            sql = session.sql("INSERT INTO sentence "
+                              "(id, person, n_serie, n_season, sentence, sentiment) VALUES (?, ?, ?, ?, ?, ?)")
+            sql.bind(row.id,\
+                    row.person,\
+                    row.n_serie,\
+                    row.n_season,\
+                    (row.sentence).encode('utf-8'),\
+                    sentiment_value).execute()
+
+            sql = session.sql("CALL add_count(?, ?, ?)")
+            sql.bind(row.person, \
+                        row.n_season,\
+                        sentiment_group).execute()
 
         session.close()
 
@@ -129,10 +148,10 @@ def saveToDatabase(batchDataframe, batchId):
 
 
 dbInsertStream = sentenceMessages.writeStream \
-   .format("console") \
-   .outputMode("append") \
+   .trigger(processingTime='1 minute') \
+   .outputMode("update") \
    .foreachBatch(saveToDatabase) \
    .start()
 
 # # Wait for termination
-# spark.streams.awaitAnyTermination()
+spark.streams.awaitAnyTermination()
