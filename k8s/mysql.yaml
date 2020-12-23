@@ -11,7 +11,7 @@ data:
       `n_serie`  tinyint NOT NULL,
       `n_season`  tinyint NOT NULL,
       `sentence`  VARCHAR(5000),
-      `sentiment`  tinyint,
+      `sentiment`  float,
       PRIMARY KEY (`id`)
     );
 
@@ -74,8 +74,8 @@ data:
 
     CREATE VIEW allSeasons AS SELECT DISTINCT n_season FROM sentence;
     CREATE VIEW allPeople AS SELECT DISTINCT person FROM sentence;
-    CREATE VIEW allPeopleChart AS SELECT person, SUM(sentiment_group_n2) AS n2, SUM(sentiment_group_n1) AS n1, SUM(sentiment_group_p1) AS p1, SUM(sentiment_group_p2) AS p2 FROM sentiment_counts GROUP BY person;
-    CREATE VIEW allSeasonsChart AS SELECT n_season, SUM(sentiment_group_n2) AS n2, SUM(sentiment_group_n1) AS n1, SUM(sentiment_group_p1) AS p1, SUM(sentiment_group_p2) AS p2 FROM sentiment_counts GROUP BY n_season;
+    CREATE VIEW allPeopleChart AS SELECT person, COALESCE(SUM(sentiment_group_n2), 0) AS n2, COALESCE(SUM(sentiment_group_n1), 0) AS n1, COALESCE(SUM(sentiment_group_p1), 0) AS p1, COALESCE(SUM(sentiment_group_p2), 0) AS p2 FROM sentiment_counts GROUP BY person;
+    CREATE VIEW allSeasonsChart AS SELECT n_season, COALESCE(SUM(sentiment_group_n2), 0) AS n2, COALESCE(SUM(sentiment_group_n1), 0) AS n1, COALESCE(SUM(sentiment_group_p1), 0) AS p1, COALESCE(SUM(sentiment_group_p2), 0) AS p2 FROM sentiment_counts GROUP BY n_season;
 
     INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (1,'waymar royce',1,1,'What d’you expect? They’re savages One lot steals a goat from another lot and before you know it, they’re ripping each other to pieces');
     INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (2,'will',1,1,'I’ve never seen wildlings do a thing like this I’ve never seen a thing like this, not ever in my life');
@@ -143,18 +143,18 @@ data:
     INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (64,'theon',1,1,'Right Give it here');
     INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (65,'bran',1,1,'NO');
     
-    INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES ('bran',1,1500,2500,3000,3000);
-    INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES ('ned',1,2545,1254,2356,4521);
-    INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES ('jon',1,1243,1232,2500,1588);
-    INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES ('cassel',1,800,200,250,1000);
-    INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES('theon',1,3500,2500,1500,500);
-    INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES('catelyn',1,1452,2145,2541,1100);
-    INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES ('bran',2,1500,2500,3000,500);
-    INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES ('ned',2,2545,1254,2356,500);
-    INSERT INTO sentiment_counts (person, n_season, sentiment_group_n2,sentiment_group_n1,sentiment_group_p1,sentiment_group_p2) VALUES ('jon',2,1243,1232,2500,500);
-    CALL add_count_all('cassel',2,800,200,250,500);
-    CALL add_count_all('theon',2,3500,2500,1500,500);
-    CALL add_count_all('catelyn',2,1452,2145,2541,500);
+    CALL add_count_all('bran',1,150,250,300,300);
+    CALL add_count_all('ned',1,254,125,235,451);
+    CALL add_count_all('jon',1,124,122,250,158);
+    CALL add_count_all('cassel',1,80,20,25,100);
+    CALL add_count_all('theon',1,350,250,150,50);
+    CALL add_count_all('catelyn',1,145,215,251,110);
+    CALL add_count_all('bran',2,15,250,300,50);
+    CALL add_count_all('ned',2,25,124,235,50);
+    CALL add_count_all('jon',2,124,123,250,50);
+    CALL add_count_all('cassel',2,80,20,25,50);
+    CALL add_count_all('theon',2,350,250,150,50);
+    CALL add_count_all('catelyn',2,145,214,254,50);
     CALL add_count('will',1,'sentiment_group_n2');
     CALL add_count('will',1,'sentiment_group_n1');
     CALL add_count('will',1,'sentiment_group_n2');

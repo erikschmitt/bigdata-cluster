@@ -21,7 +21,7 @@ if kp.bootstrap_connected():
     
 # read in csv-File
 
-with open(os.path.join(sys.path[0], "got_scripts_breakdown.csv"), "r", encoding="utf8") as file:
+with open(os.path.join(sys.path[0], "got_scripts_breakdown.csv"), "r", encoding="utf-8") as file:
     for line in file:
         if counter > 0:
             lines = line.strip().split(";")
@@ -33,8 +33,9 @@ with open(os.path.join(sys.path[0], "got_scripts_breakdown.csv"), "r", encoding=
             future = kp.send(kafka_topic, data)
             result = future.get(timeout=5)
             print(f"Result: {result}")
-            if ((counter > 1) & (counter % 100 == 0)):
-                sleep(5)
+            if ((counter > 1) & (counter % 5 == 0)):
+                sleep(15)
+            kp.flush()
 
         counter += 1
     
