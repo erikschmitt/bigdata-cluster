@@ -15,7 +15,7 @@ spark = SparkSession.builder \
     .appName("Structured Streaming").getOrCreate()
 
 # Set log level
-spark.sparkContext.setLogLevel('WARN')
+spark.sparkContext.setLogLevel('ERROR')
 
 # Example Part 2
 # Read messages from Kafka
@@ -80,7 +80,7 @@ sentenceMessages = kafkaMessages.select(
 
 def sentimentGen():
     random_num = random.uniform(-2, 2)
-    rnd_random_num = int(random_num * 100) / 1000
+    rnd_random_num = int(random_num * 100) / 100
     return rnd_random_num
 
 
@@ -92,8 +92,15 @@ def saveToDatabase(batchDataframe, batchId):
         session.sql("USE sentence").execute()
 
         for row in iterator:
+            print(row)
+            print(row.id)
+            print(row.person)
+            print(row.n_serie)
+            print(batchDataframe)
+            print(batchId)
             # Run upsert (insert or update existing)
             sentiment_value = sentimentGen()
+            print(sentiment_value)
             sentiment_group = ""
 
             if -2 <= sentiment_value < -1:
@@ -121,7 +128,6 @@ def saveToDatabase(batchDataframe, batchId):
 
 
 dbInsertStream = sentenceMessages.writeStream \
-   .trigger(processingTime="30 seconds") \
    .outputMode("update") \
    .foreachBatch(saveToDatabase) \
    .start()

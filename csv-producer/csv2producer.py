@@ -52,15 +52,15 @@ if kp.bootstrap_connected():
 with open(os.path.join(sys.path[0], "got_scripts_breakdown.csv"), "r", encoding="utf8") as file:
     for line in file:
         if counter > 0:
-            lines = line.split(";")
-            data = {'id' : lines[0],
+            lines = line.strip().split(";")
+            data = {'id' : int(lines[0]),
                     'person' : lines[4],
-                    'n_serie' : lines[5],
-                    'n_season' : lines[6],
+                    'n_serie' : int(lines[5]),
+                    'n_season' : int(lines[6]),
                     'sentence' : lines[3]}
-            data_json = json.dumps(data)
-            print(f"Sending message: {data_json}")
-            future = kp.send(kafka_topic, data_json)
+            data = json.dumps(data)
+            print(f"Sending message: {data}")
+            future = kp.send(kafka_topic, data)
             result = future.get(timeout=5)
             print(f"Result: {result}")
             if ((counter > 1) & (counter % 100 == 0)):
