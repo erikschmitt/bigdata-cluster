@@ -8,9 +8,6 @@ build:
   artifacts:
     - image: csv-producer-image
       context: csv-producer
-
-    #- image: farberg/popular-slides-spark
-    #  context: spark-app
     
     - image: spark-consumer-image
       context: spark-consumer
