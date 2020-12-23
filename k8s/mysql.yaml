@@ -74,8 +74,8 @@ data:
 
     CREATE VIEW allSeasons AS SELECT DISTINCT n_season FROM sentence;
     CREATE VIEW allPeople AS SELECT DISTINCT person FROM sentence;
-    CREATE VIEW allPeopleChart AS SELECT person, SUM(sentiment_group_n2) AS n2, SUM(sentiment_group_n1) AS n1, SUM(sentiment_group_p1) AS p1, SUM(sentiment_group_p2) AS p2 FROM sentiment_counts GROUP BY person;
-    CREATE VIEW allSeasonsChart AS SELECT n_season, SUM(sentiment_group_n2) AS n2, SUM(sentiment_group_n1) AS n1, SUM(sentiment_group_p1) AS p1, SUM(sentiment_group_p2) AS p2 FROM sentiment_counts GROUP BY n_season;
+    CREATE VIEW allPeopleChart AS SELECT person, COALESCE(SUM(sentiment_group_n2), 0) AS n2, COALESCE(SUM(sentiment_group_n1), 0) AS n1, COALESCE(SUM(sentiment_group_p1), 0) AS p1, COALESCE(SUM(sentiment_group_p2), 0) AS p2 FROM sentiment_counts GROUP BY person;
+    CREATE VIEW allSeasonsChart AS SELECT n_season, COALESCE(SUM(sentiment_group_n2), 0) AS n2, COALESCE(SUM(sentiment_group_n1), 0) AS n1, COALESCE(SUM(sentiment_group_p1), 0) AS p1, COALESCE(SUM(sentiment_group_p2), 0) AS p2 FROM sentiment_counts GROUP BY n_season;
 
     INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (1,'waymar royce',1,1,'What d’you expect? They’re savages One lot steals a goat from another lot and before you know it, they’re ripping each other to pieces');
     INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (2,'will',1,1,'I’ve never seen wildlings do a thing like this I’ve never seen a thing like this, not ever in my life');
