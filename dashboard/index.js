@@ -156,7 +156,7 @@ function timeEnd(timeStart) {
  */
 async function getAllSeasons() {
 	let timeStart = process.hrtime()
-	const query = "SELECT * FROM allSeasons ORDER BY n_season DESC"
+	const query = "SELECT * FROM allSeasons ORDER BY season ASC"
 	const key = 'allSeasons'
 	let cachedata = await getFromCache(key)
 
@@ -186,7 +186,7 @@ async function getAllSeasons() {
  */
 async function getChartAllSeasons() {
 	let timeStart = process.hrtime()
-	const query = "Select * FROM allSeasonsChart ORDER BY n_season ASC"
+	const query = "Select * FROM allSeasonsChart ORDER BY season ASC"
 	const key = 'chartAllSeasons'
 	let cachedata = await getFromCache(key)
 
@@ -221,7 +221,7 @@ async function getChartAllSeasons() {
  */
 async function getAllPeople() {
 	let timeStart = process.hrtime()
-	const query = "SELECT * FROM allPeople ORDER BY person DESC"
+	const query = "SELECT * FROM allPeople ORDER BY person ASC"
 	const key = 'allPeople'
 	let cachedata = await getFromCache(key)
 
@@ -283,11 +283,11 @@ async function getChartAllPeople() {
 
 /**
  * Load list of people, wich speaks in specific season
- * @param {string} season 
+ * @param {string} season number of season
  */
 async function getPeopleOfSeason(season) {
 	let timeStart = process.hrtime()
-	const query = "SELECT DISTINCT person FROM sentence where n_season = ?"
+	const query = "SELECT DISTINCT person FROM sentence where season = ?"
 	const key = 'peopleOfSeason_' + season
 	let cachedata = await getFromCache(key)
 
@@ -315,11 +315,11 @@ async function getPeopleOfSeason(season) {
 
 /**
  * Load chart data with sentiment of people, wich speaks in specific season
- * @param {string} season 
+ * @param {string} season number of season
  */
 async function getSentimentOfSeason(season) {
 	let timeStart = process.hrtime()
-	const query = "SELECT person, SUM(sentiment_group_n2) AS n2, SUM(sentiment_group_n1) AS n1, SUM(sentiment_group_p1) AS p1, SUM(sentiment_group_p2) AS p2 FROM sentiment_counts WHERE n_season = ? GROUP BY person;"
+	const query = "SELECT person, SUM(sentiment_group_n2) AS n2, SUM(sentiment_group_n1) AS n1, SUM(sentiment_group_p1) AS p1, SUM(sentiment_group_p2) AS p2 FROM sentiment_counts WHERE season = ? GROUP BY person;"
 	const key = 'sentimentOfSeason_' + season
 	let cachedata = await getFromCache(key)
 
@@ -351,11 +351,11 @@ async function getSentimentOfSeason(season) {
 
 /**
  * Returns number of spoken sentences and participation in seasons
- * @param {string} person 
+ * @param {string} person name of person
  */
 async function getPerson(person) {
 	let timeStart = process.hrtime()
-	const query = "SELECT count(sentence) as CountSentence, count(DISTINCT(n_season)) AS CountSeasons FROM sentence where person like ?"
+	const query = "SELECT count(id) as CountSentence, count(DISTINCT(season)) AS CountSeasons FROM sentence where person like ?"
 	const key = 'person_' + person.replace(/ /gi, "_");
 	let cachedata = await getFromCache(key)
 
@@ -382,11 +382,11 @@ async function getPerson(person) {
 
 /**
  * Returns number of spoken sentences and participation in seasons
- * @param {string} person 
+ * @param {string} person name of person
  */
 async function getChartPerson(person) {
 	let timeStart = process.hrtime()
-	const query = "SELECT n_season, SUM(sentiment_group_n2) AS n2, SUM(sentiment_group_n1) AS n1, SUM(sentiment_group_p1) AS p1, SUM(sentiment_group_p2) AS p2 FROM sentiment_counts WHERE person like ? GROUP BY n_season;"
+	const query = "SELECT season, SUM(sentiment_group_n2) AS n2, SUM(sentiment_group_n1) AS n1, SUM(sentiment_group_p1) AS p1, SUM(sentiment_group_p2) AS p2 FROM sentiment_counts WHERE person like ? GROUP BY season;"
 	const key = 'chartPerson_' + person.replace(/ /gi, "_");
 	let cachedata = await getFromCache(key)
 
@@ -505,8 +505,8 @@ app.get("/", (req, res) => {
 						categoryAxis1.renderer.axisFills.template.fillOpacity = 0.05;
 
 						var valueAxis1 = chart.xAxes.push(new am4charts.ValueAxis());
-						valueAxis1.min = -30000;
-						valueAxis1.max = 30000;
+						valueAxis1.min = -5000;
+						valueAxis1.max = 5000;
 						valueAxis1.renderer.minGridDistance = 50;
 						valueAxis1.renderer.ticks.template.length = 5;
 						valueAxis1.renderer.ticks.template.disabled = false;
@@ -580,8 +580,8 @@ app.get("/", (req, res) => {
 						categoryAxis.renderer.axisFills.template.fillOpacity = 0.05;
 
 						var valueAxis = chart2.xAxes.push(new am4charts.ValueAxis());
-						valueAxis.min = -9000;
-						valueAxis.max = 7000;
+						valueAxis.min = -900;
+						valueAxis.max = 700;
 						valueAxis.renderer.minGridDistance = 50;
 						valueAxis.renderer.ticks.template.length = 5;
 						valueAxis.renderer.ticks.template.disabled = false;
@@ -710,8 +710,8 @@ app.get("/season/:season", (req, res) => {
 					categoryAxis.renderer.axisFills.template.fillOpacity = 0.05;
 
 					var valueAxis = chart2.xAxes.push(new am4charts.ValueAxis());
-					valueAxis.min = -9000;
-					valueAxis.max = 7000;
+					valueAxis.min = -900;
+					valueAxis.max = 700;
 					valueAxis.renderer.minGridDistance = 50;
 					valueAxis.renderer.ticks.template.length = 5;
 					valueAxis.renderer.ticks.template.disabled = false;
@@ -838,8 +838,8 @@ app.get("/person/:person", (req, res) => {
 						categoryAxis.renderer.axisFills.template.fillOpacity = 0.05;
 	
 						var valueAxis = chart2.xAxes.push(new am4charts.ValueAxis());
-						valueAxis.min = -9000;
-						valueAxis.max = 7000;
+						valueAxis.min = -900;
+						valueAxis.max = 700;
 						valueAxis.renderer.minGridDistance = 50;
 						valueAxis.renderer.ticks.template.length = 5;
 						valueAxis.renderer.ticks.template.disabled = false;

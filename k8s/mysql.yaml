@@ -8,8 +8,8 @@ data:
     CREATE TABLE `sentence` (
       `id` SMALLINT unsigned  NOT NULL,
       `person` VARCHAR(50) NOT NULL,
-      `n_serie`  tinyint NOT NULL,
-      `n_season`  tinyint NOT NULL,
+      `season`  tinyint NOT NULL,
+      `episode`  tinyint NOT NULL,
       `sentence`  VARCHAR(5000),
       `sentiment`  float,
       PRIMARY KEY (`id`)
@@ -17,18 +17,18 @@ data:
 
     CREATE TABLE `sentiment_counts` (
       `person` VARCHAR(50) NOT NULL,
-      `n_season`  tinyint NOT NULL,
+      `season`  tinyint NOT NULL,
       `sentiment_group_n2`  BIGINT,
       `sentiment_group_n1`  BIGINT,
       `sentiment_group_p1`  BIGINT,
       `sentiment_group_p2`  BIGINT,
-       PRIMARY KEY (`person`,`n_season`)
+       PRIMARY KEY (`person`,`season`)
     );
 
     DELIMITER //
       CREATE PROCEDURE add_count_all(
         IN per VARCHAR(50), 
-        IN season tinyint, 
+        IN seas tinyint, 
         IN sen_gp_n2 BIGINT,
         IN sen_gp_n1 BIGINT,
         IN sen_gp_p1 BIGINT,
@@ -36,12 +36,12 @@ data:
       BEGIN
         INSERT INTO sentiment_counts (
           person,
-          n_season,
+          season,
           sentiment_group_n2,
           sentiment_group_n1,
           sentiment_group_p1,
           sentiment_group_p2)
-        VALUES (per,season,sen_gp_n2,sen_gp_n1,sen_gp_p1,sen_gp_p2)
+        VALUES (per,seas,sen_gp_n2,sen_gp_n1,sen_gp_p1,sen_gp_p2)
         ON DUPLICATE KEY UPDATE
           sentiment_group_n2 = sen_gp_n2,
           sentiment_group_n1 = sen_gp_n1,
@@ -53,15 +53,15 @@ data:
     DELIMITER //
       CREATE PROCEDURE add_count(
         IN per VARCHAR(50), 
-        IN season tinyint,
+        IN seas tinyint,
         IN sent_gr VARCHAR(50))
       BEGIN
 
         SET @iPer = per;
-        SET @seas = season;
+        SET @seas = seas;
         SET @sent = sent_gr;
         SET @query = CONCAT('INSERT INTO sentiment_counts (
-              person,n_season,',@sent,')
+              person,season,',@sent,')
         VALUES ("',@iPer,'","',@seas,'",1 )
         ON DUPLICATE KEY UPDATE
           ',@sent,' = if(',@sent,' IS NULL,1,',@sent,'+1)');
@@ -72,97 +72,10 @@ data:
       END //
     DELIMITER ;
 
-    CREATE VIEW allSeasons AS SELECT DISTINCT n_season FROM sentence;
+    CREATE VIEW allSeasons AS SELECT DISTINCT season FROM sentence;
     CREATE VIEW allPeople AS SELECT DISTINCT person FROM sentence;
     CREATE VIEW allPeopleChart AS SELECT person, COALESCE(SUM(sentiment_group_n2), 0) AS n2, COALESCE(SUM(sentiment_group_n1), 0) AS n1, COALESCE(SUM(sentiment_group_p1), 0) AS p1, COALESCE(SUM(sentiment_group_p2), 0) AS p2 FROM sentiment_counts GROUP BY person;
-    CREATE VIEW allSeasonsChart AS SELECT n_season, COALESCE(SUM(sentiment_group_n2), 0) AS n2, COALESCE(SUM(sentiment_group_n1), 0) AS n1, COALESCE(SUM(sentiment_group_p1), 0) AS p1, COALESCE(SUM(sentiment_group_p2), 0) AS p2 FROM sentiment_counts GROUP BY n_season;
-
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (1,'waymar royce',1,1,'What d’you expect? They’re savages One lot steals a goat from another lot and before you know it, they’re ripping each other to pieces');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (2,'will',1,1,'I’ve never seen wildlings do a thing like this I’ve never seen a thing like this, not ever in my life');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (3,'waymar royce',1,1,'How close did you get?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (4,'will',1,1,'Close as any man would');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (5,'gared',1,1,'We should head back to the wall');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (6,'royce',1,1,'Do the dead frighten you?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (7,'gared',1,1,'Our orders were to track the wildlings We tracked them They won’t trouble us no more');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (8,'royce',1,1,'You don’t think he’ll ask us how they died? Get back on your horse');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (9,'will',1,1,'Whatever did it to them could do it to us They even killed the children');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (10,'royce',1,1,'It’s a good thing we’re not children You want to run away south, run away Of course, they will behead you as a deserter If I don’t catch you first Get back on your horse I won’t say it again');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (11,'royce',1,1,'Your dead men seem to have moved camp');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (12,'will',1,1,'They were here');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (13,'gared',1,1,'See where they went');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (14,'royce',1,1,'What is it?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (15,'gared',1,1,'It’s');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (16,'jon',1,1,'Go on Father’s watching');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (17,'jon',1,1,'And your mother');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (18,'septa mordane',1,1,'Fine work, as always Well done');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (19,'sansa',1,1,'Thank you');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (20,'septa mordane',1,1,'I love the detail that you’ve managed to get in this corners Quite beautiful the stitching');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (21,'ned',1,1,'And which one of you was a marksman at ten? Keep practicing, Bran Go on');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (22,'jon',1,1,'Don’t think too much, Bran');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (23,'robb',1,1,'Relax your bow arm JON');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (24,'robb',1,1,'Quick, Bran, faster');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (25,'cassel',1,1,'Lord Stark My lady A guardsman just rode in from the hills They’ve captured a deserter from the Night’s Watch');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (26,'ned',1,1,'Get the lads to saddle their horses');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (27,'catelyn',1,1,'Do you have to?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (28,'ned',1,1,'He swore an oath, Cat');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (29,'cassel',1,1,'The law is law, my lady');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (30,'ned',1,1,'Tell Bran he’s coming, too');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (31,'catelyn',1,1,'Ned Ten is too young to see such things');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (32,'ned',1,1,'He won’t be a boy forever And winter is coming');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (33,'robb',1,1,'Lad, go run back and get the rest');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (34,'will',1,1,'White Walkers I saw the White Walkers White Walkers The White Walkers, I saw them');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (35,'will',1,1,'I know I broke my oath And I know I’m a deserter I should have gone back to the Wall and warned them But I saw what I saw I saw the White Walkers People need to know If you can get word to my family, tell them I’m no coward Tell them I’m sorry');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (36,'will',1,1,'Forgive me, lord');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (37,'ned',1,1,'In the name of Robert of the House Baratheon, first of his name');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (38,'jon',1,1,'Don’t look away');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (39,'ned',1,1,'King of the Andals and the First Men');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (40,'jon',1,1,'Father will know if you do');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (41,'ned',1,1,'Lord of the Seven Kingdoms and protector of the realm, I, Eddard of the House Stark, Lord of Winterfell and Warden of the North, sentence you to die');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (42,'jon',1,1,'You did well');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (43,'ned',1,1,'You understand why I did it?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (44,'bran',1,1,'Jon said he was a deserter');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (45,'ned',1,1,'But do you understand why I had to kill him?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (46,'bran',1,1,'Our way is the old way?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (47,'ned',1,1,'The man who passes the sentence should swing the sword');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (48,'bran',1,1,'Is it true he saw the White Walkers?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (49,'ned',1,1,'The White Walkers have been gone for thousands of years');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (50,'bran',1,1,'So he was lying?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (51,'ned',1,1,'A madman sees what he sees');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (52,'jon',1,1,'What is it?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (53,'theon',1,1,'Mountain lion?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (54,'ned',1,1,'There are no mountain lions in these woods');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (55,'theon',1,1,'It’s a freak');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (56,'ned',1,1,'It’s a direwolf');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (57,'ned',1,1,'Tough old beast');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (58,'robb',1,1,'There are no direwolves south of the Wall');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (59,'jon',1,1,'Now there are five');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (60,'jon',1,1,'You want to hold it?');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (61,'bran',1,1,'Where will they go? Their mother’s dead');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (62,'cassel',1,1,'They don’t belong down here');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (63,'ned',1,1,'Better a quick death They won’t last without their mother');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (64,'theon',1,1,'Right Give it here');
-    INSERT INTO sentence (id, person, n_serie, n_season, sentence) VALUES (65,'bran',1,1,'NO');
-    
-    CALL add_count_all('bran',1,150,250,300,300);
-    CALL add_count_all('ned',1,254,125,235,451);
-    CALL add_count_all('jon',1,124,122,250,158);
-    CALL add_count_all('cassel',1,80,20,25,100);
-    CALL add_count_all('theon',1,350,250,150,50);
-    CALL add_count_all('catelyn',1,145,215,251,110);
-    CALL add_count_all('bran',2,15,250,300,50);
-    CALL add_count_all('ned',2,25,124,235,50);
-    CALL add_count_all('jon',2,124,123,250,50);
-    CALL add_count_all('cassel',2,80,20,25,50);
-    CALL add_count_all('theon',2,350,250,150,50);
-    CALL add_count_all('catelyn',2,145,214,254,50);
-    CALL add_count('will',1,'sentiment_group_n2');
-    CALL add_count('will',1,'sentiment_group_n1');
-    CALL add_count('will',1,'sentiment_group_n2');
-    CALL add_count('will',1,'sentiment_group_p1');
-    CALL add_count('will',1,'sentiment_group_p2');
-    CALL add_count('will',1,'sentiment_group_p1');
-    CALL add_count('will',1,'sentiment_group_n2');
-    CALL add_count('will',1,'sentiment_group_p2');
+    CREATE VIEW allSeasonsChart AS SELECT season, COALESCE(SUM(sentiment_group_n2), 0) AS n2, COALESCE(SUM(sentiment_group_n1), 0) AS n1, COALESCE(SUM(sentiment_group_p1), 0) AS p1, COALESCE(SUM(sentiment_group_p2), 0) AS p2 FROM sentiment_counts GROUP BY season;
 
 ---
 apiVersion: apps/v1
