@@ -23,8 +23,8 @@ kafkaMessages = spark \
     .readStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers",
-            "my-cluster-kafka-bootstrap:9092") \
-    .option("subscribe", "got-data") \
+            'my-cluster-kafka-bootstrap:9092') \
+    .option("subscribe", "got_data") \
     .option("startingOffsets", "earliest") \
     .load()
 
@@ -55,6 +55,7 @@ sentenceMessages = kafkaMessages.select(
     .withColumnRenamed("json.n_season", "n_season") \
     .withColumnRenamed("json.sentence", "sentence")
 
+
 # Example Part 4
 # Compute most popular slides
 # popular = trackingMessages.groupBy(
@@ -76,7 +77,7 @@ sentenceMessages = kafkaMessages.select(
 #     .option("truncate", "false") \
 #     .start()
 
-# Example Part 6
+# # Example Part 6
 
 def sentimentGen():
     random_num = random.uniform(-2, 2)
@@ -124,13 +125,14 @@ def saveToDatabase(batchDataframe, batchId):
     # Perform batch UPSERTS per data partition
     batchDataframe.foreachPartition(save_to_db)
 
-# Example Part 7
+# # Example Part 7
 
 
 dbInsertStream = sentenceMessages.writeStream \
-   .outputMode("update") \
+   .format("console") \
+   .outputMode("append") \
    .foreachBatch(saveToDatabase) \
    .start()
 
-# Wait for termination
-spark.streams.awaitAnyTermination()
+# # Wait for termination
+# spark.streams.awaitAnyTermination()

@@ -7,45 +7,17 @@ import os
 import sys
 
 kafka_broker = 'my-cluster-kafka-bootstrap:9092'
-kafka_topic = "got-data"
+kafka_topic = "got_data"
 counter = 0
 
 kp = KafkaProducer(
     bootstrap_servers=kafka_broker,
     value_serializer=lambda x: 
-    json.dumps(x).encode('utf-8'))
+    json.dumps(x, separators=(',', ':')).encode('utf-8'))
 
 if kp.bootstrap_connected():
     print("Kafka connected")
 
-# def randomClientId():
-#     return "tracker" + str(round(random() * 100000))
-
-# Define producer with broker, client_id and value_serializer
-# Added Exception-Handling
-# Maybe add batching????
-
-# def getProducer():
-#     kafka_producer = KafkaProducer(bootstrap_servers = kafka_broker,
-#                                   client_id = randomClientId(),
-#                                   value_serializer = lambda x :
-#                                   dumps(x).encode("utf-8"),
-#                                   api_version=(0, 10, 1))
-#     return kafka_producer
-
-# def getProducers():
-#     kafka_producer = None
-#     try:
-#         kafka_producer = KafkaProducer(bootstrap_servers=kafka_broker,
-#                                        client_id = randomClientId(),
-#                                        value_serializer = lambda x : dumps(x).encode("utf-8"),
-#                                        retries=10,
-#                                        api_version=(0, 10, 1))
-#     except Exception as ex:
-#         console.log("Kafka-Connection failed")
-#         console.log(str(ex))
-#     finally:
-#         return kafka_producer
     
 # read in csv-File
 
@@ -54,18 +26,15 @@ with open(os.path.join(sys.path[0], "got_scripts_breakdown.csv"), "r", encoding=
         if counter > 0:
             lines = line.strip().split(";")
             data = {'id' : int(lines[0]),
-                    'person' : lines[4],
+                    'person' : str(lines[4]),
                     'n_serie' : int(lines[5]),
                     'n_season' : int(lines[6]),
-                    'sentence' : lines[3]}
-            data = json.dumps(data)
-            print(f"Sending message: {data}")
+                    'sentence' : str(lines[3])}
             future = kp.send(kafka_topic, data)
             result = future.get(timeout=5)
             print(f"Result: {result}")
             if ((counter > 1) & (counter % 100 == 0)):
                 sleep(5)
-            kp.flush()
 
         counter += 1
     
